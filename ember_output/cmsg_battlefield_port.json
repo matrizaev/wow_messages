@@ -1,0 +1,15 @@
+{
+  "name": "BattlefieldPort",
+  "opcode": "cmsg_battlefield_port",
+  "direction": "client",
+  "fields": [
+    {
+      "name": "map",
+      "type": "uint32"
+    },
+    {
+      "name": "action",
+      "type": "BattlefieldPortAction"
+    }
+  ]
+}

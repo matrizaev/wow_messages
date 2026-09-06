@@ -1,0 +1,15 @@
+{
+  "name": "NewWorld",
+  "opcode": "smsg_new_world",
+  "direction": "server",
+  "fields": [
+    {
+      "name": "map",
+      "type": "uint32"
+    },
+    {
+      "name": "position",
+      "type": "Vector4d"
+    }
+  ]
+}

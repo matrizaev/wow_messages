@@ -31,6 +31,7 @@ use parser::types::objects::Objects;
 use rust_printer::print_struct;
 
 use crate::doc_printer::print_docs;
+use crate::ember_printer::write_ember_schema;
 use crate::file_utils::create_and_overwrite_if_not_same_contents;
 use crate::file_utils::mod_files::ModFiles;
 use crate::ir_printer::write_intermediate_representation;
@@ -61,6 +62,7 @@ mod wowm_printer;
 
 mod path_utils;
 
+mod ember_printer;
 pub mod error_printer;
 #[cfg(test)]
 mod test;
@@ -77,6 +79,7 @@ const SKIP_STR: &str = "skip_codegen";
 const LOGIN_VERSIONS: &str = "login_versions";
 const RUST_BASE_TYPE: &str = "rust_base_type";
 const ZERO_IS_ALWAYS_VALID: &str = "zero_is_always_valid";
+const FROM_DBC_FILE: &str = "from_dbc_file";
 const NON_NETWORK_TYPE: &str = "non_network_type";
 const USED_IN_UPDATE_MASK: &str = "used_in_update_mask";
 const VALID_RANGE: &str = "valid_range";
@@ -120,12 +123,7 @@ fn main() {
 }
 
 fn load_and_print_wowm_files() {
-    let mut o = ParsedObjects::empty();
-
-    load_files(&wowm_directory("login"), &mut o);
-    load_files(&wowm_directory("world"), &mut o);
-
-    let o = o.into_objects();
+    let o = parse_objects_in_directory(&wowm_directory());
 
     wireshark_printer::print_wireshark(&o);
 
@@ -136,6 +134,8 @@ fn load_and_print_wowm_files() {
     write_world_opcodes(&o);
 
     write_intermediate_representation(&o);
+
+    write_ember_schema(&o);
 
     print_update_mask();
 
@@ -259,7 +259,9 @@ fn write_login_opcodes(o: &Objects) {
     }
 }
 
-fn load_files(dir: &Path, components: &mut ParsedObjects) {
+pub(crate) fn parse_objects_in_directory(dir: &Path) -> Objects {
+    let mut components = ParsedObjects::empty();
+
     for file in WalkDir::new(dir).into_iter().filter_map(|a| a.ok()) {
         if !file.file_type().is_file() {
             continue;
@@ -267,6 +269,8 @@ fn load_files(dir: &Path, components: &mut ParsedObjects) {
         let c = parser::parse_file(file.path());
         components.add_vecs(c);
     }
+
+    components.into_objects()
 }
 
 fn should_not_write_object(t: &ObjectTags) -> bool {
