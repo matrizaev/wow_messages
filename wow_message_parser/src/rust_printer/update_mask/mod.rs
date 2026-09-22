@@ -342,6 +342,16 @@ fn print_getter(s: &mut Writer, m: &UpdateMaskMember) {
             ));
             s.wln("self.get_guid(offset)");
         }
+        UpdateMaskDataType::IntArrayUsingEnum {
+            variable_name,
+            index_offset,
+            ..
+        } => {
+            s.wln(format!(
+                "let offset = {offset} + {variable_name}.as_int() as u16 - {index_offset};"
+            ));
+            s.wln("self.get_int(offset)");
+        }
     }
 
     s.closing_curly_newline(); // pub(crate) fn get_
@@ -378,6 +388,16 @@ fn print_setter_internals(s: &mut Writer, m: &UpdateMaskMember) {
                 "let offset = {offset} + {variable_name}.as_int() as u16 * 2;",
             ));
             s.wln("self.set_guid(offset, item);");
+        }
+        UpdateMaskDataType::IntArrayUsingEnum {
+            variable_name,
+            index_offset,
+            ..
+        } => {
+            s.wln(format!(
+                "let offset = {offset} + {variable_name}.as_int() as u16 - {index_offset};"
+            ));
+            s.wln("self.set_int(offset, v);");
         }
         UpdateMaskDataType::Int => {
             s.wln(format!("self.set_int({offset}, v);"));
@@ -595,6 +615,12 @@ pub(crate) enum UpdateMaskDataType {
         variable_name: &'static str,
         import_location: &'static str,
     },
+    IntArrayUsingEnum {
+        name: &'static str,
+        variable_name: &'static str,
+        import_location: &'static str,
+        index_offset: i32,
+    },
 }
 
 impl UpdateMaskDataType {
@@ -639,6 +665,7 @@ impl UpdateMaskDataType {
                 import_location,
                 ..
             } => format!("{import_location}::{name}"),
+            UpdateMaskDataType::IntArrayUsingEnum { .. } => INT_TYPE.to_string(),
         }
     }
 
@@ -679,6 +706,16 @@ impl UpdateMaskDataType {
                     import_location,
                 } => {
                     return format!("{variable_name}: {import_location}::{name}, item: Guid");
+                }
+                UpdateMaskDataType::IntArrayUsingEnum {
+                    name,
+                    variable_name,
+                    import_location,
+                    ..
+                } => {
+                    return format!(
+                        "{variable_name}: {import_location}::{name}, v: {INT_TYPE}"
+                    );
                 }
             }
         )

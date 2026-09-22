@@ -2005,17 +2005,27 @@ pub(crate) const FIELDS: &[UpdateMaskMember] = &[
     ),
     UpdateMaskMember::new(
         UpdateMaskObjectType::Player,
-        "BUYBACK_PRICE_1",
+        "BUYBACK_PRICE",
         0x04B1,
         12,
-        UpdateMaskDataType::Int,
+        UpdateMaskDataType::IntArrayUsingEnum {
+            name: "BuybackSlot",
+            variable_name: "slot",
+            import_location: "crate::wrath",
+            index_offset: 74,
+        },
     ),
     UpdateMaskMember::new(
         UpdateMaskObjectType::Player,
-        "BUYBACK_TIMESTAMP_1",
+        "BUYBACK_TIMESTAMP",
         0x04bd,
         12,
-        UpdateMaskDataType::Int,
+        UpdateMaskDataType::IntArrayUsingEnum {
+            name: "BuybackSlot",
+            variable_name: "slot",
+            import_location: "crate::wrath",
+            index_offset: 74,
+        },
     ),
     UpdateMaskMember::new(
         UpdateMaskObjectType::Player,
