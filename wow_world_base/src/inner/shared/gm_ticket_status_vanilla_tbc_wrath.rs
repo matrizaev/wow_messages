@@ -6,9 +6,10 @@
 ///     DEFAULT = 0x0A;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum GmTicketStatus {
+    #[default]
     DbError,
     HasText,
     Default,
@@ -55,19 +56,13 @@ impl GmTicketStatus {
 
 const NAME: &str = "GmTicketStatus";
 
-impl Default for GmTicketStatus {
-    fn default() -> Self {
-        Self::DbError
-    }
-}
-
 impl std::fmt::Display for GmTicketStatus {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::DbError => f.write_str("DbError"),
-            Self::HasText => f.write_str("HasText"),
-            Self::Default => f.write_str("Default"),
-        }
+        f.write_str(match self {
+            Self::DbError => "DbError",
+            Self::HasText => "HasText",
+            Self::Default => "Default",
+        })
     }
 }
 

@@ -5,9 +5,10 @@
 ///     FULL = 2;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum RaidGroupError {
+    #[default]
     Required,
     Full,
 }
@@ -49,18 +50,12 @@ impl RaidGroupError {
 
 const NAME: &str = "RaidGroupError";
 
-impl Default for RaidGroupError {
-    fn default() -> Self {
-        Self::Required
-    }
-}
-
 impl std::fmt::Display for RaidGroupError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Required => f.write_str("Required"),
-            Self::Full => f.write_str("Full"),
-        }
+        f.write_str(match self {
+            Self::Required => "Required",
+            Self::Full => "Full",
+        })
     }
 }
 

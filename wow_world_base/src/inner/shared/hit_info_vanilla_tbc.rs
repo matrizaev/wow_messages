@@ -18,9 +18,10 @@
 ///     SWING_NO_HIT_SOUND = 0x00080000;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum HitInfo {
+    #[default]
     NormalSwing,
     /// req correct packet structure
     Unk1,
@@ -134,31 +135,25 @@ impl HitInfo {
 
 const NAME: &str = "HitInfo";
 
-impl Default for HitInfo {
-    fn default() -> Self {
-        Self::NormalSwing
-    }
-}
-
 impl std::fmt::Display for HitInfo {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::NormalSwing => f.write_str("NormalSwing"),
-            Self::Unk1 => f.write_str("Unk1"),
-            Self::AffectsVictim => f.write_str("AffectsVictim"),
-            Self::LeftSwing => f.write_str("LeftSwing"),
-            Self::EarlyCriticalHit => f.write_str("EarlyCriticalHit"),
-            Self::Miss => f.write_str("Miss"),
-            Self::Absorb => f.write_str("Absorb"),
-            Self::Resist => f.write_str("Resist"),
-            Self::CriticalHit => f.write_str("CriticalHit"),
-            Self::Unk9 => f.write_str("Unk9"),
-            Self::Unk10 => f.write_str("Unk10"),
-            Self::Glancing => f.write_str("Glancing"),
-            Self::Crushing => f.write_str("Crushing"),
-            Self::NoAction => f.write_str("NoAction"),
-            Self::SwingNoHitSound => f.write_str("SwingNoHitSound"),
-        }
+        f.write_str(match self {
+            Self::NormalSwing => "NormalSwing",
+            Self::Unk1 => "Unk1",
+            Self::AffectsVictim => "AffectsVictim",
+            Self::LeftSwing => "LeftSwing",
+            Self::EarlyCriticalHit => "EarlyCriticalHit",
+            Self::Miss => "Miss",
+            Self::Absorb => "Absorb",
+            Self::Resist => "Resist",
+            Self::CriticalHit => "CriticalHit",
+            Self::Unk9 => "Unk9",
+            Self::Unk10 => "Unk10",
+            Self::Glancing => "Glancing",
+            Self::Crushing => "Crushing",
+            Self::NoAction => "NoAction",
+            Self::SwingNoHitSound => "SwingNoHitSound",
+        })
     }
 }
 

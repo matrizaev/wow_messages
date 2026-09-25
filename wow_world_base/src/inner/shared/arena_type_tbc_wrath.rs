@@ -7,9 +7,10 @@
 ///     FIVE_VS_FIVE = 5;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum ArenaType {
+    #[default]
     NotArena,
     TwoVsTwo,
     ThreeVsThree,
@@ -61,20 +62,14 @@ impl ArenaType {
 
 const NAME: &str = "ArenaType";
 
-impl Default for ArenaType {
-    fn default() -> Self {
-        Self::NotArena
-    }
-}
-
 impl std::fmt::Display for ArenaType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::NotArena => f.write_str("NotArena"),
-            Self::TwoVsTwo => f.write_str("TwoVsTwo"),
-            Self::ThreeVsThree => f.write_str("ThreeVsThree"),
-            Self::FiveVsFive => f.write_str("FiveVsFive"),
-        }
+        f.write_str(match self {
+            Self::NotArena => "NotArena",
+            Self::TwoVsTwo => "TwoVsTwo",
+            Self::ThreeVsThree => "ThreeVsThree",
+            Self::FiveVsFive => "FiveVsFive",
+        })
     }
 }
 

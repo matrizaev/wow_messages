@@ -5,9 +5,10 @@
 ///     EARNED = 1;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum TitleEarnStatus {
+    #[default]
     Lost,
     Earned,
 }
@@ -49,18 +50,12 @@ impl TitleEarnStatus {
 
 const NAME: &str = "TitleEarnStatus";
 
-impl Default for TitleEarnStatus {
-    fn default() -> Self {
-        Self::Lost
-    }
-}
-
 impl std::fmt::Display for TitleEarnStatus {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Lost => f.write_str("Lost"),
-            Self::Earned => f.write_str("Earned"),
-        }
+        f.write_str(match self {
+            Self::Lost => "Lost",
+            Self::Earned => "Earned",
+        })
     }
 }
 

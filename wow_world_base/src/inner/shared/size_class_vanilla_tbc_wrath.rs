@@ -13,9 +13,10 @@
 ///     COLOSSAL = 4;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum SizeClass {
+    #[default]
     None,
     Small,
     Medium,
@@ -77,22 +78,16 @@ impl SizeClass {
 
 const NAME: &str = "SizeClass";
 
-impl Default for SizeClass {
-    fn default() -> Self {
-        Self::None
-    }
-}
-
 impl std::fmt::Display for SizeClass {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::None => f.write_str("None"),
-            Self::Small => f.write_str("Small"),
-            Self::Medium => f.write_str("Medium"),
-            Self::Large => f.write_str("Large"),
-            Self::Giant => f.write_str("Giant"),
-            Self::Colossal => f.write_str("Colossal"),
-        }
+        f.write_str(match self {
+            Self::None => "None",
+            Self::Small => "Small",
+            Self::Medium => "Medium",
+            Self::Large => "Large",
+            Self::Giant => "Giant",
+            Self::Colossal => "Colossal",
+        })
     }
 }
 

@@ -7,9 +7,10 @@
 ///     RANGED = 2;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum SheathState {
+    #[default]
     Unarmed,
     Melee,
     Ranged,
@@ -56,19 +57,13 @@ impl SheathState {
 
 const NAME: &str = "SheathState";
 
-impl Default for SheathState {
-    fn default() -> Self {
-        Self::Unarmed
-    }
-}
-
 impl std::fmt::Display for SheathState {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Unarmed => f.write_str("Unarmed"),
-            Self::Melee => f.write_str("Melee"),
-            Self::Ranged => f.write_str("Ranged"),
-        }
+        f.write_str(match self {
+            Self::Unarmed => "Unarmed",
+            Self::Melee => "Melee",
+            Self::Ranged => "Ranged",
+        })
     }
 }
 

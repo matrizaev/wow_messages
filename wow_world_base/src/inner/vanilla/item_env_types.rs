@@ -10,9 +10,10 @@
 ///     WOOD_WEAPON = 2;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum ItemEnvTypes {
+    #[default]
     Shield,
     MetalWeapon,
     WoodWeapon,
@@ -59,19 +60,13 @@ impl ItemEnvTypes {
 
 const NAME: &str = "ItemEnvTypes";
 
-impl Default for ItemEnvTypes {
-    fn default() -> Self {
-        Self::Shield
-    }
-}
-
 impl std::fmt::Display for ItemEnvTypes {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Shield => f.write_str("Shield"),
-            Self::MetalWeapon => f.write_str("MetalWeapon"),
-            Self::WoodWeapon => f.write_str("WoodWeapon"),
-        }
+        f.write_str(match self {
+            Self::Shield => "Shield",
+            Self::MetalWeapon => "MetalWeapon",
+            Self::WoodWeapon => "WoodWeapon",
+        })
     }
 }
 

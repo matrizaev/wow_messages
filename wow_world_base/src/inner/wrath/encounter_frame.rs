@@ -11,9 +11,10 @@
 ///     REFRESH_FRAMES = 7;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum EncounterFrame {
+    #[default]
     Engage,
     Disengage,
     UpdatePriority,
@@ -86,24 +87,18 @@ impl EncounterFrame {
 
 const NAME: &str = "EncounterFrame";
 
-impl Default for EncounterFrame {
-    fn default() -> Self {
-        Self::Engage
-    }
-}
-
 impl std::fmt::Display for EncounterFrame {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Engage => f.write_str("Engage"),
-            Self::Disengage => f.write_str("Disengage"),
-            Self::UpdatePriority => f.write_str("UpdatePriority"),
-            Self::AddTimer => f.write_str("AddTimer"),
-            Self::EnableObjective => f.write_str("EnableObjective"),
-            Self::UpdateObjective => f.write_str("UpdateObjective"),
-            Self::DisableObjective => f.write_str("DisableObjective"),
-            Self::RefreshFrames => f.write_str("RefreshFrames"),
-        }
+        f.write_str(match self {
+            Self::Engage => "Engage",
+            Self::Disengage => "Disengage",
+            Self::UpdatePriority => "UpdatePriority",
+            Self::AddTimer => "AddTimer",
+            Self::EnableObjective => "EnableObjective",
+            Self::UpdateObjective => "UpdateObjective",
+            Self::DisableObjective => "DisableObjective",
+            Self::RefreshFrames => "RefreshFrames",
+        })
     }
 }
 

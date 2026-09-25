@@ -1,10 +1,12 @@
+use std::fmt::{Display, Formatter};
+
+use serde::Serialize;
+
 use crate::file_utils::overwrite_if_not_same_contents;
 use crate::parser::types::version::MajorWorldVersion;
 use crate::parser::types::IntegerType;
 use crate::path_utils::{update_mask_index_location, update_mask_location};
 use crate::rust_printer::writer::Writer;
-use serde::Serialize;
-use std::fmt::{Display, Formatter};
 
 pub mod tbc_fields;
 pub mod vanilla_fields;
@@ -260,6 +262,20 @@ fn print_getter(s: &mut Writer, m: &UpdateMaskMember) {
                 m.name.to_lowercase(),
             ));
         }
+        UpdateMaskDataType::ArrayOfInteger {
+            integer_type,
+            name,
+            variable_name,
+            import_location,
+            ..
+        } => {
+            s.open_curly(format!(
+                "pub fn {}_{}(&self, {variable_name}: {import_location}::{name}) -> Option<{}>",
+                m.object_ty.to_string().to_lowercase(),
+                m.name.to_lowercase(),
+                integer_type.rust_str(),
+            ));
+        }
         _ => {
             s.open_curly(format!(
                 "pub fn {}_{}(&self) -> Option<{}>",
@@ -342,15 +358,23 @@ fn print_getter(s: &mut Writer, m: &UpdateMaskMember) {
             ));
             s.wln("self.get_guid(offset)");
         }
-        UpdateMaskDataType::IntArrayUsingEnum {
+        UpdateMaskDataType::ArrayOfInteger {
+            integer_type,
             variable_name,
-            index_offset,
+            index_origin,
+            size,
             ..
         } => {
             s.wln(format!(
-                "let offset = {offset} + {variable_name}.as_int() as u16 - {index_offset};"
+                "let offset = {offset} + ({variable_name}.as_int() as u16 - {index_origin}) * {size}u16;"
             ));
-            s.wln("self.get_int(offset)");
+            match integer_type {
+                IntegerType::U32 => {
+                    s.wln("self.get_int(offset).map(|value| value as u32)");
+                }
+                IntegerType::I32 => s.wln("self.get_int(offset)"),
+                _ => panic!("update-mask integer arrays require 32-bit integer types"),
+            }
         }
     }
 
@@ -389,15 +413,22 @@ fn print_setter_internals(s: &mut Writer, m: &UpdateMaskMember) {
             ));
             s.wln("self.set_guid(offset, item);");
         }
-        UpdateMaskDataType::IntArrayUsingEnum {
+        UpdateMaskDataType::ArrayOfInteger {
+            integer_type,
             variable_name,
-            index_offset,
+            index_origin,
+            size,
             ..
         } => {
             s.wln(format!(
-                "let offset = {offset} + {variable_name}.as_int() as u16 - {index_offset};"
+                "let offset = {offset} + ({variable_name}.as_int() as u16 - {index_origin}) * {size}u16;"
             ));
-            s.wln("self.set_int(offset, v);");
+            let value = match integer_type {
+                IntegerType::U32 => "v as i32",
+                IntegerType::I32 => "v",
+                _ => panic!("update-mask integer arrays require 32-bit integer types"),
+            };
+            s.wln(format!("self.set_int(offset, {value});"));
         }
         UpdateMaskDataType::Int => {
             s.wln(format!("self.set_int({offset}, v);"));
@@ -615,11 +646,13 @@ pub(crate) enum UpdateMaskDataType {
         variable_name: &'static str,
         import_location: &'static str,
     },
-    IntArrayUsingEnum {
+    ArrayOfInteger {
+        integer_type: IntegerType,
         name: &'static str,
         variable_name: &'static str,
         import_location: &'static str,
-        index_offset: i32,
+        index_origin: u32,
+        size: i32,
     },
 }
 
@@ -665,7 +698,9 @@ impl UpdateMaskDataType {
                 import_location,
                 ..
             } => format!("{import_location}::{name}"),
-            UpdateMaskDataType::IntArrayUsingEnum { .. } => INT_TYPE.to_string(),
+            UpdateMaskDataType::ArrayOfInteger { integer_type, .. } => {
+                integer_type.rust_str().to_string()
+            }
         }
     }
 
@@ -707,14 +742,16 @@ impl UpdateMaskDataType {
                 } => {
                     return format!("{variable_name}: {import_location}::{name}, item: Guid");
                 }
-                UpdateMaskDataType::IntArrayUsingEnum {
+                UpdateMaskDataType::ArrayOfInteger {
+                    integer_type,
                     name,
                     variable_name,
                     import_location,
                     ..
                 } => {
                     return format!(
-                        "{variable_name}: {import_location}::{name}, v: {INT_TYPE}"
+                        "{variable_name}: {import_location}::{name}, v: {}",
+                        integer_type.rust_str()
                     );
                 }
             }

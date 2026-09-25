@@ -5,9 +5,10 @@
 ///     YES = 1;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum DeclinedNames {
+    #[default]
     No,
     Yes,
 }
@@ -49,18 +50,12 @@ impl DeclinedNames {
 
 const NAME: &str = "DeclinedNames";
 
-impl Default for DeclinedNames {
-    fn default() -> Self {
-        Self::No
-    }
-}
-
 impl std::fmt::Display for DeclinedNames {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::No => f.write_str("No"),
-            Self::Yes => f.write_str("Yes"),
-        }
+        f.write_str(match self {
+            Self::No => "No",
+            Self::Yes => "Yes",
+        })
     }
 }
 

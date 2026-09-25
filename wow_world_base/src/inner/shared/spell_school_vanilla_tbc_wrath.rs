@@ -10,10 +10,11 @@
 ///     ARCANE = 6;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum SpellSchool {
     /// Physical, Armor
+    #[default]
     Normal,
     Holy,
     Fire,
@@ -80,23 +81,17 @@ impl SpellSchool {
 
 const NAME: &str = "SpellSchool";
 
-impl Default for SpellSchool {
-    fn default() -> Self {
-        Self::Normal
-    }
-}
-
 impl std::fmt::Display for SpellSchool {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Normal => f.write_str("Normal"),
-            Self::Holy => f.write_str("Holy"),
-            Self::Fire => f.write_str("Fire"),
-            Self::Nature => f.write_str("Nature"),
-            Self::Frost => f.write_str("Frost"),
-            Self::Shadow => f.write_str("Shadow"),
-            Self::Arcane => f.write_str("Arcane"),
-        }
+        f.write_str(match self {
+            Self::Normal => "Normal",
+            Self::Holy => "Holy",
+            Self::Fire => "Fire",
+            Self::Nature => "Nature",
+            Self::Frost => "Frost",
+            Self::Shadow => "Shadow",
+            Self::Arcane => "Arcane",
+        })
     }
 }
 

@@ -9,9 +9,10 @@
 ///     OFF_HAND = 1;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum AttackHand {
+    #[default]
     MainHand,
     OffHand,
 }
@@ -53,18 +54,12 @@ impl AttackHand {
 
 const NAME: &str = "AttackHand";
 
-impl Default for AttackHand {
-    fn default() -> Self {
-        Self::MainHand
-    }
-}
-
 impl std::fmt::Display for AttackHand {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::MainHand => f.write_str("MainHand"),
-            Self::OffHand => f.write_str("OffHand"),
-        }
+        f.write_str(match self {
+            Self::MainHand => "MainHand",
+            Self::OffHand => "OffHand",
+        })
     }
 }
 

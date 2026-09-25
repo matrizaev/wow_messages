@@ -12,9 +12,10 @@
 ///     TAUREN = 141;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum CinematicSequenceId {
+    #[default]
     Goblin,
     Undead,
     Orc,
@@ -91,25 +92,19 @@ impl CinematicSequenceId {
 
 const NAME: &str = "CinematicSequenceId";
 
-impl Default for CinematicSequenceId {
-    fn default() -> Self {
-        Self::Goblin
-    }
-}
-
 impl std::fmt::Display for CinematicSequenceId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Goblin => f.write_str("Goblin"),
-            Self::Undead => f.write_str("Undead"),
-            Self::Orc => f.write_str("Orc"),
-            Self::Dwarf => f.write_str("Dwarf"),
-            Self::NightElf => f.write_str("NightElf"),
-            Self::Human => f.write_str("Human"),
-            Self::Gnome => f.write_str("Gnome"),
-            Self::Troll => f.write_str("Troll"),
-            Self::Tauren => f.write_str("Tauren"),
-        }
+        f.write_str(match self {
+            Self::Goblin => "Goblin",
+            Self::Undead => "Undead",
+            Self::Orc => "Orc",
+            Self::Dwarf => "Dwarf",
+            Self::NightElf => "NightElf",
+            Self::Human => "Human",
+            Self::Gnome => "Gnome",
+            Self::Troll => "Troll",
+            Self::Tauren => "Tauren",
+        })
     }
 }
 

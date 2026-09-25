@@ -5,9 +5,10 @@
 ///     ADD = 1;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum FarSightOperation {
+    #[default]
     Remove,
     Add,
 }
@@ -49,18 +50,12 @@ impl FarSightOperation {
 
 const NAME: &str = "FarSightOperation";
 
-impl Default for FarSightOperation {
-    fn default() -> Self {
-        Self::Remove
-    }
-}
-
 impl std::fmt::Display for FarSightOperation {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Remove => f.write_str("Remove"),
-            Self::Add => f.write_str("Add"),
-        }
+        f.write_str(match self {
+            Self::Remove => "Remove",
+            Self::Add => "Add",
+        })
     }
 }
 

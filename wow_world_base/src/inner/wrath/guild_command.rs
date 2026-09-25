@@ -11,9 +11,10 @@
 ///     OFFICER_NOTE_CHANGED = 0x14;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum GuildCommand {
+    #[default]
     Create,
     Invite,
     Quit,
@@ -85,24 +86,18 @@ impl GuildCommand {
 
 const NAME: &str = "GuildCommand";
 
-impl Default for GuildCommand {
-    fn default() -> Self {
-        Self::Create
-    }
-}
-
 impl std::fmt::Display for GuildCommand {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Create => f.write_str("Create"),
-            Self::Invite => f.write_str("Invite"),
-            Self::Quit => f.write_str("Quit"),
-            Self::Promote => f.write_str("Promote"),
-            Self::Founder => f.write_str("Founder"),
-            Self::Member => f.write_str("Member"),
-            Self::PublicNoteChanged => f.write_str("PublicNoteChanged"),
-            Self::OfficerNoteChanged => f.write_str("OfficerNoteChanged"),
-        }
+        f.write_str(match self {
+            Self::Create => "Create",
+            Self::Invite => "Invite",
+            Self::Quit => "Quit",
+            Self::Promote => "Promote",
+            Self::Founder => "Founder",
+            Self::Member => "Member",
+            Self::PublicNoteChanged => "PublicNoteChanged",
+            Self::OfficerNoteChanged => "OfficerNoteChanged",
+        })
     }
 }
 

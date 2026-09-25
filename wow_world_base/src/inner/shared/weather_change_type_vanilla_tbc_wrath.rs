@@ -5,9 +5,10 @@
 ///     INSTANT = 1;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum WeatherChangeType {
+    #[default]
     Smooth,
     Instant,
 }
@@ -49,18 +50,12 @@ impl WeatherChangeType {
 
 const NAME: &str = "WeatherChangeType";
 
-impl Default for WeatherChangeType {
-    fn default() -> Self {
-        Self::Smooth
-    }
-}
-
 impl std::fmt::Display for WeatherChangeType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Smooth => f.write_str("Smooth"),
-            Self::Instant => f.write_str("Instant"),
-        }
+        f.write_str(match self {
+            Self::Smooth => "Smooth",
+            Self::Instant => "Instant",
+        })
     }
 }
 

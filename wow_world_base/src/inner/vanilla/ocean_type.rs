@@ -10,9 +10,10 @@
 ///     WATER = 3;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum OceanType {
+    #[default]
     Fire,
     Slime,
     Water,
@@ -59,19 +60,13 @@ impl OceanType {
 
 const NAME: &str = "OceanType";
 
-impl Default for OceanType {
-    fn default() -> Self {
-        Self::Fire
-    }
-}
-
 impl std::fmt::Display for OceanType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Fire => f.write_str("Fire"),
-            Self::Slime => f.write_str("Slime"),
-            Self::Water => f.write_str("Water"),
-        }
+        f.write_str(match self {
+            Self::Fire => "Fire",
+            Self::Slime => "Slime",
+            Self::Water => "Water",
+        })
     }
 }
 

@@ -10,9 +10,10 @@
 ///     HEAVY = 2;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum SwingType {
+    #[default]
     Light,
     Medium,
     Heavy,
@@ -59,19 +60,13 @@ impl SwingType {
 
 const NAME: &str = "SwingType";
 
-impl Default for SwingType {
-    fn default() -> Self {
-        Self::Light
-    }
-}
-
 impl std::fmt::Display for SwingType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Light => f.write_str("Light"),
-            Self::Medium => f.write_str("Medium"),
-            Self::Heavy => f.write_str("Heavy"),
-        }
+        f.write_str(match self {
+            Self::Light => "Light",
+            Self::Medium => "Medium",
+            Self::Heavy => "Heavy",
+        })
     }
 }
 

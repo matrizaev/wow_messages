@@ -9,9 +9,10 @@
 ///     QUEST_ITEM1 = 5;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum Bonding {
+    #[default]
     NoBind,
     PickUp,
     Equip,
@@ -74,22 +75,16 @@ impl Bonding {
 
 const NAME: &str = "Bonding";
 
-impl Default for Bonding {
-    fn default() -> Self {
-        Self::NoBind
-    }
-}
-
 impl std::fmt::Display for Bonding {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::NoBind => f.write_str("NoBind"),
-            Self::PickUp => f.write_str("Binds when picked up"),
-            Self::Equip => f.write_str("Binds when equipped"),
-            Self::Use => f.write_str("Binds on use"),
-            Self::QuestItem => f.write_str("Quest Item"),
-            Self::QuestItem1 => f.write_str("Quest Item"),
-        }
+        f.write_str(match self {
+            Self::NoBind => "NoBind",
+            Self::PickUp => "Binds when picked up",
+            Self::Equip => "Binds when equipped",
+            Self::Use => "Binds on use",
+            Self::QuestItem => "Quest Item",
+            Self::QuestItem1 => "Quest Item",
+        })
     }
 }
 

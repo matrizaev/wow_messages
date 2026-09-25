@@ -13,10 +13,11 @@
 ///     FINISH_QUEST = 8;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum QuestPartyMessage {
     /// ERR_QUEST_PUSH_SUCCESS_S
+    #[default]
     SharingQuest,
     /// ERR_QUEST_PUSH_INVALID_S
     CantTakeQuest,
@@ -101,25 +102,19 @@ impl QuestPartyMessage {
 
 const NAME: &str = "QuestPartyMessage";
 
-impl Default for QuestPartyMessage {
-    fn default() -> Self {
-        Self::SharingQuest
-    }
-}
-
 impl std::fmt::Display for QuestPartyMessage {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::SharingQuest => f.write_str("SharingQuest"),
-            Self::CantTakeQuest => f.write_str("CantTakeQuest"),
-            Self::AcceptQuest => f.write_str("AcceptQuest"),
-            Self::DeclineQuest => f.write_str("DeclineQuest"),
-            Self::TooFar => f.write_str("TooFar"),
-            Self::Busy => f.write_str("Busy"),
-            Self::LogFull => f.write_str("LogFull"),
-            Self::HaveQuest => f.write_str("HaveQuest"),
-            Self::FinishQuest => f.write_str("FinishQuest"),
-        }
+        f.write_str(match self {
+            Self::SharingQuest => "SharingQuest",
+            Self::CantTakeQuest => "CantTakeQuest",
+            Self::AcceptQuest => "AcceptQuest",
+            Self::DeclineQuest => "DeclineQuest",
+            Self::TooFar => "TooFar",
+            Self::Busy => "Busy",
+            Self::LogFull => "LogFull",
+            Self::HaveQuest => "HaveQuest",
+            Self::FinishQuest => "FinishQuest",
+        })
     }
 }
 

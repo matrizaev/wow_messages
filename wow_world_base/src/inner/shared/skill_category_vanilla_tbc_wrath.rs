@@ -13,10 +13,11 @@
 ///     GENERIC = 12;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum SkillCategory {
     /// Not used for anything in Vanilla and TBC, only used for `Pet - Exotic Spirit Beast` in Wrath.
+    #[default]
     Attribute,
     Weapon,
     Class,
@@ -88,24 +89,18 @@ impl SkillCategory {
 
 const NAME: &str = "SkillCategory";
 
-impl Default for SkillCategory {
-    fn default() -> Self {
-        Self::Attribute
-    }
-}
-
 impl std::fmt::Display for SkillCategory {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Attribute => f.write_str("Attribute"),
-            Self::Weapon => f.write_str("Weapon"),
-            Self::Class => f.write_str("Class"),
-            Self::Armor => f.write_str("Armor"),
-            Self::SecondaryProfession => f.write_str("SecondaryProfession"),
-            Self::Language => f.write_str("Language"),
-            Self::PrimaryProfession => f.write_str("PrimaryProfession"),
-            Self::Generic => f.write_str("Generic"),
-        }
+        f.write_str(match self {
+            Self::Attribute => "Attribute",
+            Self::Weapon => "Weapon",
+            Self::Class => "Class",
+            Self::Armor => "Armor",
+            Self::SecondaryProfession => "SecondaryProfession",
+            Self::Language => "Language",
+            Self::PrimaryProfession => "PrimaryProfession",
+            Self::Generic => "Generic",
+        })
     }
 }
 

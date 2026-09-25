@@ -9,9 +9,10 @@
 ///     MADE_PERMANENT = 5;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum MailAction {
+    #[default]
     Send,
     MoneyTaken,
     ItemTaken,
@@ -73,22 +74,16 @@ impl MailAction {
 
 const NAME: &str = "MailAction";
 
-impl Default for MailAction {
-    fn default() -> Self {
-        Self::Send
-    }
-}
-
 impl std::fmt::Display for MailAction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Send => f.write_str("Send"),
-            Self::MoneyTaken => f.write_str("MoneyTaken"),
-            Self::ItemTaken => f.write_str("ItemTaken"),
-            Self::ReturnedToSender => f.write_str("ReturnedToSender"),
-            Self::Deleted => f.write_str("Deleted"),
-            Self::MadePermanent => f.write_str("MadePermanent"),
-        }
+        f.write_str(match self {
+            Self::Send => "Send",
+            Self::MoneyTaken => "MoneyTaken",
+            Self::ItemTaken => "ItemTaken",
+            Self::ReturnedToSender => "ReturnedToSender",
+            Self::Deleted => "Deleted",
+            Self::MadePermanent => "MadePermanent",
+        })
     }
 }
 

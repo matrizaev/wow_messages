@@ -5,9 +5,10 @@
 ///     LEAVE = 2;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum PartyOperation {
+    #[default]
     Invite,
     Leave,
 }
@@ -49,18 +50,12 @@ impl PartyOperation {
 
 const NAME: &str = "PartyOperation";
 
-impl Default for PartyOperation {
-    fn default() -> Self {
-        Self::Invite
-    }
-}
-
 impl std::fmt::Display for PartyOperation {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Invite => f.write_str("Invite"),
-            Self::Leave => f.write_str("Leave"),
-        }
+        f.write_str(match self {
+            Self::Invite => "Invite",
+            Self::Leave => "Leave",
+        })
     }
 }
 

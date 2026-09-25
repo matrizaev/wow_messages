@@ -14,9 +14,10 @@
 ///     CHARACTER = 10;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum GmTicketType {
+    #[default]
     Stuck,
     BehaviorHarassment,
     Guild,
@@ -98,26 +99,20 @@ impl GmTicketType {
 
 const NAME: &str = "GmTicketType";
 
-impl Default for GmTicketType {
-    fn default() -> Self {
-        Self::Stuck
-    }
-}
-
 impl std::fmt::Display for GmTicketType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Stuck => f.write_str("Stuck"),
-            Self::BehaviorHarassment => f.write_str("BehaviorHarassment"),
-            Self::Guild => f.write_str("Guild"),
-            Self::Item => f.write_str("Item"),
-            Self::Environmental => f.write_str("Environmental"),
-            Self::NonquestCreep => f.write_str("NonquestCreep"),
-            Self::QuestQuestnpc => f.write_str("QuestQuestnpc"),
-            Self::Technical => f.write_str("Technical"),
-            Self::AccountBilling => f.write_str("AccountBilling"),
-            Self::Character => f.write_str("Character"),
-        }
+        f.write_str(match self {
+            Self::Stuck => "Stuck",
+            Self::BehaviorHarassment => "BehaviorHarassment",
+            Self::Guild => "Guild",
+            Self::Item => "Item",
+            Self::Environmental => "Environmental",
+            Self::NonquestCreep => "NonquestCreep",
+            Self::QuestQuestnpc => "QuestQuestnpc",
+            Self::Technical => "Technical",
+            Self::AccountBilling => "AccountBilling",
+            Self::Character => "Character",
+        })
     }
 }
 

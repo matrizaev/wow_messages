@@ -12,9 +12,10 @@
 ///     IGNORING_YOU = 8;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum PartyResult {
+    #[default]
     Success,
     BadPlayerName,
     TargetNotInGroup,
@@ -91,25 +92,19 @@ impl PartyResult {
 
 const NAME: &str = "PartyResult";
 
-impl Default for PartyResult {
-    fn default() -> Self {
-        Self::Success
-    }
-}
-
 impl std::fmt::Display for PartyResult {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Success => f.write_str("Success"),
-            Self::BadPlayerName => f.write_str("BadPlayerName"),
-            Self::TargetNotInGroup => f.write_str("TargetNotInGroup"),
-            Self::GroupFull => f.write_str("GroupFull"),
-            Self::AlreadyInGroup => f.write_str("AlreadyInGroup"),
-            Self::NotInGroup => f.write_str("NotInGroup"),
-            Self::NotLeader => f.write_str("NotLeader"),
-            Self::PlayerWrongFaction => f.write_str("PlayerWrongFaction"),
-            Self::IgnoringYou => f.write_str("IgnoringYou"),
-        }
+        f.write_str(match self {
+            Self::Success => "Success",
+            Self::BadPlayerName => "BadPlayerName",
+            Self::TargetNotInGroup => "TargetNotInGroup",
+            Self::GroupFull => "GroupFull",
+            Self::AlreadyInGroup => "AlreadyInGroup",
+            Self::NotInGroup => "NotInGroup",
+            Self::NotLeader => "NotLeader",
+            Self::PlayerWrongFaction => "PlayerWrongFaction",
+            Self::IgnoringYou => "IgnoringYou",
+        })
     }
 }
 

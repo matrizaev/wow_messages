@@ -7,9 +7,10 @@
 ///     ENVIRONMENTAL = 3;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum TimerType {
+    #[default]
     Fatigue,
     Breath,
     FeignDeath,
@@ -62,20 +63,14 @@ impl TimerType {
 
 const NAME: &str = "TimerType";
 
-impl Default for TimerType {
-    fn default() -> Self {
-        Self::Fatigue
-    }
-}
-
 impl std::fmt::Display for TimerType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Fatigue => f.write_str("Fatigue"),
-            Self::Breath => f.write_str("Breath"),
-            Self::FeignDeath => f.write_str("FeignDeath"),
-            Self::Environmental => f.write_str("Environmental"),
-        }
+        f.write_str(match self {
+            Self::Fatigue => "Fatigue",
+            Self::Breath => "Breath",
+            Self::FeignDeath => "FeignDeath",
+            Self::Environmental => "Environmental",
+        })
     }
 }
 

@@ -5,9 +5,10 @@
 ///     JOINED = 1;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum LfgJoinStatus {
+    #[default]
     NotJoined,
     Joined,
 }
@@ -49,18 +50,12 @@ impl LfgJoinStatus {
 
 const NAME: &str = "LfgJoinStatus";
 
-impl Default for LfgJoinStatus {
-    fn default() -> Self {
-        Self::NotJoined
-    }
-}
-
 impl std::fmt::Display for LfgJoinStatus {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::NotJoined => f.write_str("NotJoined"),
-            Self::Joined => f.write_str("Joined"),
-        }
+        f.write_str(match self {
+            Self::NotJoined => "NotJoined",
+            Self::Joined => "Joined",
+        })
     }
 }
 

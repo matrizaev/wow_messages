@@ -5,9 +5,10 @@
 ///     OK = 3;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum DismountResult {
+    #[default]
     NotMounted,
     Ok,
 }
@@ -49,18 +50,12 @@ impl DismountResult {
 
 const NAME: &str = "DismountResult";
 
-impl Default for DismountResult {
-    fn default() -> Self {
-        Self::NotMounted
-    }
-}
-
 impl std::fmt::Display for DismountResult {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::NotMounted => f.write_str("NotMounted"),
-            Self::Ok => f.write_str("Ok"),
-        }
+        f.write_str(match self {
+            Self::NotMounted => "NotMounted",
+            Self::Ok => "Ok",
+        })
     }
 }
 

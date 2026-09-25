@@ -7,9 +7,10 @@
 ///     FAILURE_JUMPING_OR_FALLING = 3;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum LogoutResult {
+    #[default]
     Success,
     FailureInCombat,
     /// vmangos checks for aura 9454. Has FIXME - Need the correct value.
@@ -62,20 +63,14 @@ impl LogoutResult {
 
 const NAME: &str = "LogoutResult";
 
-impl Default for LogoutResult {
-    fn default() -> Self {
-        Self::Success
-    }
-}
-
 impl std::fmt::Display for LogoutResult {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Success => f.write_str("Success"),
-            Self::FailureInCombat => f.write_str("FailureInCombat"),
-            Self::FailureFrozenByGm => f.write_str("FailureFrozenByGm"),
-            Self::FailureJumpingOrFalling => f.write_str("FailureJumpingOrFalling"),
-        }
+        f.write_str(match self {
+            Self::Success => "Success",
+            Self::FailureInCombat => "FailureInCombat",
+            Self::FailureFrozenByGm => "FailureFrozenByGm",
+            Self::FailureJumpingOrFalling => "FailureJumpingOrFalling",
+        })
     }
 }
 

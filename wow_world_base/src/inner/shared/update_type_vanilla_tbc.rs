@@ -9,9 +9,10 @@
 ///     NEAR_OBJECTS = 5;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum UpdateType {
+    #[default]
     Values,
     Movement,
     CreateObject,
@@ -73,22 +74,16 @@ impl UpdateType {
 
 const NAME: &str = "UpdateType";
 
-impl Default for UpdateType {
-    fn default() -> Self {
-        Self::Values
-    }
-}
-
 impl std::fmt::Display for UpdateType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Values => f.write_str("Values"),
-            Self::Movement => f.write_str("Movement"),
-            Self::CreateObject => f.write_str("CreateObject"),
-            Self::CreateObject2 => f.write_str("CreateObject2"),
-            Self::OutOfRangeObjects => f.write_str("OutOfRangeObjects"),
-            Self::NearObjects => f.write_str("NearObjects"),
-        }
+        f.write_str(match self {
+            Self::Values => "Values",
+            Self::Movement => "Movement",
+            Self::CreateObject => "CreateObject",
+            Self::CreateObject2 => "CreateObject2",
+            Self::OutOfRangeObjects => "OutOfRangeObjects",
+            Self::NearObjects => "NearObjects",
+        })
     }
 }
 

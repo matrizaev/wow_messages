@@ -6,9 +6,10 @@
 ///     ENABLED_WITH_AUTO_IGNORE = 2;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum ComplaintStatus {
+    #[default]
     Disabled,
     EnabledWithoutAutoIgnore,
     EnabledWithAutoIgnore,
@@ -55,19 +56,13 @@ impl ComplaintStatus {
 
 const NAME: &str = "ComplaintStatus";
 
-impl Default for ComplaintStatus {
-    fn default() -> Self {
-        Self::Disabled
-    }
-}
-
 impl std::fmt::Display for ComplaintStatus {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Disabled => f.write_str("Disabled"),
-            Self::EnabledWithoutAutoIgnore => f.write_str("EnabledWithoutAutoIgnore"),
-            Self::EnabledWithAutoIgnore => f.write_str("EnabledWithAutoIgnore"),
-        }
+        f.write_str(match self {
+            Self::Disabled => "Disabled",
+            Self::EnabledWithoutAutoIgnore => "EnabledWithoutAutoIgnore",
+            Self::EnabledWithAutoIgnore => "EnabledWithAutoIgnore",
+        })
     }
 }
 

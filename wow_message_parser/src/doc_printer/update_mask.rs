@@ -1,3 +1,5 @@
+use std::fs::read_to_string;
+
 use crate::file_utils::overwrite_if_not_same_contents;
 use crate::path_utils::update_mask_doc_file;
 use crate::rust_printer::writer::Writer;
@@ -5,7 +7,6 @@ use crate::rust_printer::{
     tbc_fields, vanilla_fields, wrath_fields, UpdateMaskDataType, UpdateMaskMember,
     UpdateMaskObjectType,
 };
-use std::fs::read_to_string;
 
 fn print_specific_update_mask_doc(fields: &[UpdateMaskMember], s: &mut Writer) {
     for &u in UpdateMaskObjectType::all() {
@@ -24,7 +25,7 @@ fn print_specific_update_mask_doc(fields: &[UpdateMaskMember], s: &mut Writer) {
                     UpdateMaskDataType::Bytes(_, _, _, _) => "BYTES",
                     UpdateMaskDataType::TwoShort(_, _) => "TWO_SHORT",
                     UpdateMaskDataType::GuidArrayUsingEnum { .. }
-                    | UpdateMaskDataType::IntArrayUsingEnum { .. }
+                    | UpdateMaskDataType::ArrayOfInteger { .. }
                     | UpdateMaskDataType::ArrayOfStruct { .. } => "CUSTOM",
                 };
 

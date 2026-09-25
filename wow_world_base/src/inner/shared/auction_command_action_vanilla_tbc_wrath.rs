@@ -6,10 +6,11 @@
 ///     BID_PLACED = 2;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum AuctionCommandAction {
     /// ERR_AUCTION_STARTED
+    #[default]
     Started,
     /// ERR_AUCTION_REMOVED
     Removed,
@@ -58,19 +59,13 @@ impl AuctionCommandAction {
 
 const NAME: &str = "AuctionCommandAction";
 
-impl Default for AuctionCommandAction {
-    fn default() -> Self {
-        Self::Started
-    }
-}
-
 impl std::fmt::Display for AuctionCommandAction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Started => f.write_str("Started"),
-            Self::Removed => f.write_str("Removed"),
-            Self::BidPlaced => f.write_str("BidPlaced"),
-        }
+        f.write_str(match self {
+            Self::Started => "Started",
+            Self::Removed => "Removed",
+            Self::BidPlaced => "BidPlaced",
+        })
     }
 }
 

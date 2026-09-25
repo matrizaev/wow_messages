@@ -7,9 +7,10 @@
 ///     YELL_RESTRICTED = 3;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum ChatRestrictionType {
+    #[default]
     ChatRestricted,
     ChatThrottled,
     UserSquelched,
@@ -61,20 +62,14 @@ impl ChatRestrictionType {
 
 const NAME: &str = "ChatRestrictionType";
 
-impl Default for ChatRestrictionType {
-    fn default() -> Self {
-        Self::ChatRestricted
-    }
-}
-
 impl std::fmt::Display for ChatRestrictionType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::ChatRestricted => f.write_str("ChatRestricted"),
-            Self::ChatThrottled => f.write_str("ChatThrottled"),
-            Self::UserSquelched => f.write_str("UserSquelched"),
-            Self::YellRestricted => f.write_str("YellRestricted"),
-        }
+        f.write_str(match self {
+            Self::ChatRestricted => "ChatRestricted",
+            Self::ChatThrottled => "ChatThrottled",
+            Self::UserSquelched => "UserSquelched",
+            Self::YellRestricted => "YellRestricted",
+        })
     }
 }
 

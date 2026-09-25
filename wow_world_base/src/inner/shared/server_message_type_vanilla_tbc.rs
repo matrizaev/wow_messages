@@ -8,9 +8,10 @@
 ///     RESTART_CANCELLED = 5;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum ServerMessageType {
+    #[default]
     ShutdownTime,
     RestartTime,
     Custom,
@@ -67,21 +68,15 @@ impl ServerMessageType {
 
 const NAME: &str = "ServerMessageType";
 
-impl Default for ServerMessageType {
-    fn default() -> Self {
-        Self::ShutdownTime
-    }
-}
-
 impl std::fmt::Display for ServerMessageType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::ShutdownTime => f.write_str("ShutdownTime"),
-            Self::RestartTime => f.write_str("RestartTime"),
-            Self::Custom => f.write_str("Custom"),
-            Self::ShutdownCancelled => f.write_str("ShutdownCancelled"),
-            Self::RestartCancelled => f.write_str("RestartCancelled"),
-        }
+        f.write_str(match self {
+            Self::ShutdownTime => "ShutdownTime",
+            Self::RestartTime => "RestartTime",
+            Self::Custom => "Custom",
+            Self::ShutdownCancelled => "ShutdownCancelled",
+            Self::RestartCancelled => "RestartCancelled",
+        })
     }
 }
 

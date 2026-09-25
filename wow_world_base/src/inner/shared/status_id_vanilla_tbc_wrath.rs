@@ -8,10 +8,11 @@
 ///     WAIT_LEAVE = 4;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum StatusId {
     /// first status, should mean bg is not instance
+    #[default]
     None,
     /// means bg is empty and waiting for queue
     WaitQueue,
@@ -72,21 +73,15 @@ impl StatusId {
 
 const NAME: &str = "StatusId";
 
-impl Default for StatusId {
-    fn default() -> Self {
-        Self::None
-    }
-}
-
 impl std::fmt::Display for StatusId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::None => f.write_str("None"),
-            Self::WaitQueue => f.write_str("WaitQueue"),
-            Self::WaitJoin => f.write_str("WaitJoin"),
-            Self::InProgress => f.write_str("InProgress"),
-            Self::WaitLeave => f.write_str("WaitLeave"),
-        }
+        f.write_str(match self {
+            Self::None => "None",
+            Self::WaitQueue => "WaitQueue",
+            Self::WaitJoin => "WaitJoin",
+            Self::InProgress => "InProgress",
+            Self::WaitLeave => "WaitLeave",
+        })
     }
 }
 

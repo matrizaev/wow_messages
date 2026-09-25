@@ -13,9 +13,10 @@
 ///     NINE = 9;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum KeyVersion {
+    #[default]
     Zero,
     One,
     Two,
@@ -97,26 +98,20 @@ impl KeyVersion {
 
 const NAME: &str = "KeyVersion";
 
-impl Default for KeyVersion {
-    fn default() -> Self {
-        Self::Zero
-    }
-}
-
 impl std::fmt::Display for KeyVersion {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Zero => f.write_str("Zero"),
-            Self::One => f.write_str("One"),
-            Self::Two => f.write_str("Two"),
-            Self::Three => f.write_str("Three"),
-            Self::Four => f.write_str("Four"),
-            Self::Five => f.write_str("Five"),
-            Self::Six => f.write_str("Six"),
-            Self::Seven => f.write_str("Seven"),
-            Self::Eight => f.write_str("Eight"),
-            Self::Nine => f.write_str("Nine"),
-        }
+        f.write_str(match self {
+            Self::Zero => "Zero",
+            Self::One => "One",
+            Self::Two => "Two",
+            Self::Three => "Three",
+            Self::Four => "Four",
+            Self::Five => "Five",
+            Self::Six => "Six",
+            Self::Seven => "Seven",
+            Self::Eight => "Eight",
+            Self::Nine => "Nine",
+        })
     }
 }
 

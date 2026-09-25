@@ -15,9 +15,10 @@
 ///     SPANISH_LATIN_AMERICA = 7;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum ClientLanguage {
+    #[default]
     English,
     Korean,
     French,
@@ -89,24 +90,18 @@ impl ClientLanguage {
 
 const NAME: &str = "ClientLanguage";
 
-impl Default for ClientLanguage {
-    fn default() -> Self {
-        Self::English
-    }
-}
-
 impl std::fmt::Display for ClientLanguage {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::English => f.write_str("English"),
-            Self::Korean => f.write_str("Korean"),
-            Self::French => f.write_str("French"),
-            Self::German => f.write_str("German"),
-            Self::Chinese => f.write_str("Chinese"),
-            Self::Taiwanese => f.write_str("Taiwanese"),
-            Self::SpanishSpain => f.write_str("SpanishSpain"),
-            Self::SpanishLatinAmerica => f.write_str("SpanishLatinAmerica"),
-        }
+        f.write_str(match self {
+            Self::English => "English",
+            Self::Korean => "Korean",
+            Self::French => "French",
+            Self::German => "German",
+            Self::Chinese => "Chinese",
+            Self::Taiwanese => "Taiwanese",
+            Self::SpanishSpain => "SpanishSpain",
+            Self::SpanishLatinAmerica => "SpanishLatinAmerica",
+        })
     }
 }
 

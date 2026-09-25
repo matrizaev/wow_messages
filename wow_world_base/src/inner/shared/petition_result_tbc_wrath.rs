@@ -8,9 +8,10 @@
 ///     NOT_SERVER = 4;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum PetitionResult {
+    #[default]
     Ok,
     AlreadySigned,
     AlreadyInGuild,
@@ -67,21 +68,15 @@ impl PetitionResult {
 
 const NAME: &str = "PetitionResult";
 
-impl Default for PetitionResult {
-    fn default() -> Self {
-        Self::Ok
-    }
-}
-
 impl std::fmt::Display for PetitionResult {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Ok => f.write_str("Ok"),
-            Self::AlreadySigned => f.write_str("AlreadySigned"),
-            Self::AlreadyInGuild => f.write_str("AlreadyInGuild"),
-            Self::CantSignOwn => f.write_str("CantSignOwn"),
-            Self::NotServer => f.write_str("NotServer"),
-        }
+        f.write_str(match self {
+            Self::Ok => "Ok",
+            Self::AlreadySigned => "AlreadySigned",
+            Self::AlreadyInGuild => "AlreadyInGuild",
+            Self::CantSignOwn => "CantSignOwn",
+            Self::NotServer => "NotServer",
+        })
     }
 }
 

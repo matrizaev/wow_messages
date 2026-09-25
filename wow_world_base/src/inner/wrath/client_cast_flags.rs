@@ -5,9 +5,10 @@
 ///     EXTRA = 2;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum ClientCastFlags {
+    #[default]
     None,
     Extra,
 }
@@ -49,18 +50,12 @@ impl ClientCastFlags {
 
 const NAME: &str = "ClientCastFlags";
 
-impl Default for ClientCastFlags {
-    fn default() -> Self {
-        Self::None
-    }
-}
-
 impl std::fmt::Display for ClientCastFlags {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::None => f.write_str("None"),
-            Self::Extra => f.write_str("Extra"),
-        }
+        f.write_str(match self {
+            Self::None => "None",
+            Self::Extra => "Extra",
+        })
     }
 }
 

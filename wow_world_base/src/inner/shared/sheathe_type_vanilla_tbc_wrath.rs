@@ -11,9 +11,10 @@
 ///     SHIELD = 7;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum SheatheType {
+    #[default]
     None,
     MainHand,
     OffHand,
@@ -85,24 +86,18 @@ impl SheatheType {
 
 const NAME: &str = "SheatheType";
 
-impl Default for SheatheType {
-    fn default() -> Self {
-        Self::None
-    }
-}
-
 impl std::fmt::Display for SheatheType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::None => f.write_str("None"),
-            Self::MainHand => f.write_str("MainHand"),
-            Self::OffHand => f.write_str("OffHand"),
-            Self::LargeWeaponLeft => f.write_str("LargeWeaponLeft"),
-            Self::LargeWeaponRight => f.write_str("LargeWeaponRight"),
-            Self::HipWeaponLeft => f.write_str("HipWeaponLeft"),
-            Self::HipWeaponRight => f.write_str("HipWeaponRight"),
-            Self::Shield => f.write_str("Shield"),
-        }
+        f.write_str(match self {
+            Self::None => "None",
+            Self::MainHand => "MainHand",
+            Self::OffHand => "OffHand",
+            Self::LargeWeaponLeft => "LargeWeaponLeft",
+            Self::LargeWeaponRight => "LargeWeaponRight",
+            Self::HipWeaponLeft => "HipWeaponLeft",
+            Self::HipWeaponRight => "HipWeaponRight",
+            Self::Shield => "Shield",
+        })
     }
 }
 

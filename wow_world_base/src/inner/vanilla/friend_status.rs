@@ -8,9 +8,10 @@
 ///     DND = 4;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum FriendStatus {
+    #[default]
     Offline,
     Online,
     Afk,
@@ -67,21 +68,15 @@ impl FriendStatus {
 
 const NAME: &str = "FriendStatus";
 
-impl Default for FriendStatus {
-    fn default() -> Self {
-        Self::Offline
-    }
-}
-
 impl std::fmt::Display for FriendStatus {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Offline => f.write_str("Offline"),
-            Self::Online => f.write_str("Online"),
-            Self::Afk => f.write_str("Afk"),
-            Self::Unknown3 => f.write_str("Unknown3"),
-            Self::Dnd => f.write_str("Dnd"),
-        }
+        f.write_str(match self {
+            Self::Offline => "Offline",
+            Self::Online => "Online",
+            Self::Afk => "Afk",
+            Self::Unknown3 => "Unknown3",
+            Self::Dnd => "Dnd",
+        })
     }
 }
 

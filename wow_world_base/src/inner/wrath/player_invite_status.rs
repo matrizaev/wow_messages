@@ -5,9 +5,10 @@
 ///     NOT_IN_GROUP = 1;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum PlayerInviteStatus {
+    #[default]
     AlreadyInGroup,
     NotInGroup,
 }
@@ -49,18 +50,12 @@ impl PlayerInviteStatus {
 
 const NAME: &str = "PlayerInviteStatus";
 
-impl Default for PlayerInviteStatus {
-    fn default() -> Self {
-        Self::AlreadyInGroup
-    }
-}
-
 impl std::fmt::Display for PlayerInviteStatus {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::AlreadyInGroup => f.write_str("AlreadyInGroup"),
-            Self::NotInGroup => f.write_str("NotInGroup"),
-        }
+        f.write_str(match self {
+            Self::AlreadyInGroup => "AlreadyInGroup",
+            Self::NotInGroup => "NotInGroup",
+        })
     }
 }
 

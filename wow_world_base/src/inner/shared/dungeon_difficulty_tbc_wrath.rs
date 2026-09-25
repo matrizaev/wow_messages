@@ -5,9 +5,10 @@
 ///     HEROIC = 1;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum DungeonDifficulty {
+    #[default]
     Normal,
     Heroic,
 }
@@ -49,18 +50,12 @@ impl DungeonDifficulty {
 
 const NAME: &str = "DungeonDifficulty";
 
-impl Default for DungeonDifficulty {
-    fn default() -> Self {
-        Self::Normal
-    }
-}
-
 impl std::fmt::Display for DungeonDifficulty {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Normal => f.write_str("Normal"),
-            Self::Heroic => f.write_str("Heroic"),
-        }
+        f.write_str(match self {
+            Self::Normal => "Normal",
+            Self::Heroic => "Heroic",
+        })
     }
 }
 

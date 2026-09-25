@@ -15,9 +15,10 @@
 ///     MSG_DIFFERENT_SERVER_DAILY = 11;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum QuestPartyMessage {
+    #[default]
     MsgSharingQuest,
     MsgCantTakeQuest,
     MsgAcceptQuest,
@@ -109,28 +110,22 @@ impl QuestPartyMessage {
 
 const NAME: &str = "QuestPartyMessage";
 
-impl Default for QuestPartyMessage {
-    fn default() -> Self {
-        Self::MsgSharingQuest
-    }
-}
-
 impl std::fmt::Display for QuestPartyMessage {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::MsgSharingQuest => f.write_str("MsgSharingQuest"),
-            Self::MsgCantTakeQuest => f.write_str("MsgCantTakeQuest"),
-            Self::MsgAcceptQuest => f.write_str("MsgAcceptQuest"),
-            Self::MsgRefuseQuest => f.write_str("MsgRefuseQuest"),
-            Self::MsgBusy => f.write_str("MsgBusy"),
-            Self::MsgLogFull => f.write_str("MsgLogFull"),
-            Self::MsgHaveQuest => f.write_str("MsgHaveQuest"),
-            Self::MsgFinishQuest => f.write_str("MsgFinishQuest"),
-            Self::MsgCantBeSharedToday => f.write_str("MsgCantBeSharedToday"),
-            Self::MsgSharingTimerExpired => f.write_str("MsgSharingTimerExpired"),
-            Self::MsgNotInParty => f.write_str("MsgNotInParty"),
-            Self::MsgDifferentServerDaily => f.write_str("MsgDifferentServerDaily"),
-        }
+        f.write_str(match self {
+            Self::MsgSharingQuest => "MsgSharingQuest",
+            Self::MsgCantTakeQuest => "MsgCantTakeQuest",
+            Self::MsgAcceptQuest => "MsgAcceptQuest",
+            Self::MsgRefuseQuest => "MsgRefuseQuest",
+            Self::MsgBusy => "MsgBusy",
+            Self::MsgLogFull => "MsgLogFull",
+            Self::MsgHaveQuest => "MsgHaveQuest",
+            Self::MsgFinishQuest => "MsgFinishQuest",
+            Self::MsgCantBeSharedToday => "MsgCantBeSharedToday",
+            Self::MsgSharingTimerExpired => "MsgSharingTimerExpired",
+            Self::MsgNotInParty => "MsgNotInParty",
+            Self::MsgDifferentServerDaily => "MsgDifferentServerDaily",
+        })
     }
 }
 

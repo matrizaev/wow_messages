@@ -5,9 +5,10 @@
 ///     SHOW = 1;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum ComplainResultWindow {
+    #[default]
     DoNotShow,
     Show,
 }
@@ -49,18 +50,12 @@ impl ComplainResultWindow {
 
 const NAME: &str = "ComplainResultWindow";
 
-impl Default for ComplainResultWindow {
-    fn default() -> Self {
-        Self::DoNotShow
-    }
-}
-
 impl std::fmt::Display for ComplainResultWindow {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::DoNotShow => f.write_str("DoNotShow"),
-            Self::Show => f.write_str("Show"),
-        }
+        f.write_str(match self {
+            Self::DoNotShow => "DoNotShow",
+            Self::Show => "Show",
+        })
     }
 }
 

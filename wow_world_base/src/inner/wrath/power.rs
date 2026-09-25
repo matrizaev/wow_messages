@@ -11,9 +11,10 @@
 ///     HEALTH = 0xFE;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum Power {
+    #[default]
     Mana,
     Rage,
     Focus,
@@ -85,24 +86,18 @@ impl Power {
 
 const NAME: &str = "Power";
 
-impl Default for Power {
-    fn default() -> Self {
-        Self::Mana
-    }
-}
-
 impl std::fmt::Display for Power {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Mana => f.write_str("Mana"),
-            Self::Rage => f.write_str("Rage"),
-            Self::Focus => f.write_str("Focus"),
-            Self::Energy => f.write_str("Energy"),
-            Self::Happiness => f.write_str("Happiness"),
-            Self::Rune => f.write_str("Rune"),
-            Self::RunicPower => f.write_str("RunicPower"),
-            Self::Health => f.write_str("Health"),
-        }
+        f.write_str(match self {
+            Self::Mana => "Mana",
+            Self::Rage => "Rage",
+            Self::Focus => "Focus",
+            Self::Energy => "Energy",
+            Self::Happiness => "Happiness",
+            Self::Rune => "Rune",
+            Self::RunicPower => "RunicPower",
+            Self::Health => "Health",
+        })
     }
 }
 

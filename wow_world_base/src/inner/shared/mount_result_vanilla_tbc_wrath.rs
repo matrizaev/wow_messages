@@ -14,10 +14,11 @@
 ///     OK = 10;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum MountResult {
     /// You can't mount that unit!
+    #[default]
     InvalidMountee,
     /// That mount is too far away!
     TooFarAway,
@@ -114,27 +115,21 @@ impl MountResult {
 
 const NAME: &str = "MountResult";
 
-impl Default for MountResult {
-    fn default() -> Self {
-        Self::InvalidMountee
-    }
-}
-
 impl std::fmt::Display for MountResult {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::InvalidMountee => f.write_str("InvalidMountee"),
-            Self::TooFarAway => f.write_str("TooFarAway"),
-            Self::AlreadyMounted => f.write_str("AlreadyMounted"),
-            Self::NotMountable => f.write_str("NotMountable"),
-            Self::NotYourPet => f.write_str("NotYourPet"),
-            Self::Other => f.write_str("Other"),
-            Self::Looting => f.write_str("Looting"),
-            Self::RaceCantMount => f.write_str("RaceCantMount"),
-            Self::Shapeshifted => f.write_str("Shapeshifted"),
-            Self::ForcedDismount => f.write_str("ForcedDismount"),
-            Self::Ok => f.write_str("Ok"),
-        }
+        f.write_str(match self {
+            Self::InvalidMountee => "InvalidMountee",
+            Self::TooFarAway => "TooFarAway",
+            Self::AlreadyMounted => "AlreadyMounted",
+            Self::NotMountable => "NotMountable",
+            Self::NotYourPet => "NotYourPet",
+            Self::Other => "Other",
+            Self::Looting => "Looting",
+            Self::RaceCantMount => "RaceCantMount",
+            Self::Shapeshifted => "Shapeshifted",
+            Self::ForcedDismount => "ForcedDismount",
+            Self::Ok => "Ok",
+        })
     }
 }
 

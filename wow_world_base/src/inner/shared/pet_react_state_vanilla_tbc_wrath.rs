@@ -6,9 +6,10 @@
 ///     AGGRESSIVE = 2;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum PetReactState {
+    #[default]
     Passive,
     Defensive,
     Aggressive,
@@ -55,19 +56,13 @@ impl PetReactState {
 
 const NAME: &str = "PetReactState";
 
-impl Default for PetReactState {
-    fn default() -> Self {
-        Self::Passive
-    }
-}
-
 impl std::fmt::Display for PetReactState {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Passive => f.write_str("Passive"),
-            Self::Defensive => f.write_str("Defensive"),
-            Self::Aggressive => f.write_str("Aggressive"),
-        }
+        f.write_str(match self {
+            Self::Passive => "Passive",
+            Self::Defensive => "Defensive",
+            Self::Aggressive => "Aggressive",
+        })
     }
 }
 

@@ -5,9 +5,10 @@
 ///     COMPLETEABLE = 3;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum QuestCompletable {
+    #[default]
     NotCompletable,
     Completeable,
 }
@@ -49,18 +50,12 @@ impl QuestCompletable {
 
 const NAME: &str = "QuestCompletable";
 
-impl Default for QuestCompletable {
-    fn default() -> Self {
-        Self::NotCompletable
-    }
-}
-
 impl std::fmt::Display for QuestCompletable {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::NotCompletable => f.write_str("NotCompletable"),
-            Self::Completeable => f.write_str("Completeable"),
-        }
+        f.write_str(match self {
+            Self::NotCompletable => "NotCompletable",
+            Self::Completeable => "Completeable",
+        })
     }
 }
 

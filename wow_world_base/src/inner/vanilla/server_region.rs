@@ -14,9 +14,10 @@
 ///     QA_SERVER = 101;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum ServerRegion {
+    #[default]
     UnitedStates,
     Korea,
     Europe,
@@ -83,23 +84,17 @@ impl ServerRegion {
 
 const NAME: &str = "ServerRegion";
 
-impl Default for ServerRegion {
-    fn default() -> Self {
-        Self::UnitedStates
-    }
-}
-
 impl std::fmt::Display for ServerRegion {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::UnitedStates => f.write_str("UnitedStates"),
-            Self::Korea => f.write_str("Korea"),
-            Self::Europe => f.write_str("Europe"),
-            Self::Taiwan => f.write_str("Taiwan"),
-            Self::China => f.write_str("China"),
-            Self::TestServer => f.write_str("TestServer"),
-            Self::QaServer => f.write_str("QaServer"),
-        }
+        f.write_str(match self {
+            Self::UnitedStates => "UnitedStates",
+            Self::Korea => "Korea",
+            Self::Europe => "Europe",
+            Self::Taiwan => "Taiwan",
+            Self::China => "China",
+            Self::TestServer => "TestServer",
+            Self::QaServer => "QaServer",
+        })
     }
 }
 

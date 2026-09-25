@@ -19,9 +19,10 @@
 ///     MAP_NOT_ALLOWED = 0x10;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum TransferAbortReason {
+    #[default]
     None,
     ErrorX,
     /// Transfer Aborted: instance is full
@@ -147,32 +148,26 @@ impl TransferAbortReason {
 
 const NAME: &str = "TransferAbortReason";
 
-impl Default for TransferAbortReason {
-    fn default() -> Self {
-        Self::None
-    }
-}
-
 impl std::fmt::Display for TransferAbortReason {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::None => f.write_str("None"),
-            Self::ErrorX => f.write_str("ErrorX"),
-            Self::MaxPlayers => f.write_str("MaxPlayers"),
-            Self::NotFound => f.write_str("NotFound"),
-            Self::TooManyInstances => f.write_str("TooManyInstances"),
-            Self::ZoneInCombat => f.write_str("ZoneInCombat"),
-            Self::InsufficientExpansionLevel => f.write_str("InsufficientExpansionLevel"),
-            Self::DifficultyNotAvailable => f.write_str("DifficultyNotAvailable"),
-            Self::UniqueMessage => f.write_str("UniqueMessage"),
-            Self::TooManyRealmInstances => f.write_str("TooManyRealmInstances"),
-            Self::NeedGroup => f.write_str("NeedGroup"),
-            Self::NotFound1 => f.write_str("NotFound1"),
-            Self::NotFound2 => f.write_str("NotFound2"),
-            Self::NotFound3 => f.write_str("NotFound3"),
-            Self::RealmOnly => f.write_str("RealmOnly"),
-            Self::MapNotAllowed => f.write_str("MapNotAllowed"),
-        }
+        f.write_str(match self {
+            Self::None => "None",
+            Self::ErrorX => "ErrorX",
+            Self::MaxPlayers => "MaxPlayers",
+            Self::NotFound => "NotFound",
+            Self::TooManyInstances => "TooManyInstances",
+            Self::ZoneInCombat => "ZoneInCombat",
+            Self::InsufficientExpansionLevel => "InsufficientExpansionLevel",
+            Self::DifficultyNotAvailable => "DifficultyNotAvailable",
+            Self::UniqueMessage => "UniqueMessage",
+            Self::TooManyRealmInstances => "TooManyRealmInstances",
+            Self::NeedGroup => "NeedGroup",
+            Self::NotFound1 => "NotFound1",
+            Self::NotFound2 => "NotFound2",
+            Self::NotFound3 => "NotFound3",
+            Self::RealmOnly => "RealmOnly",
+            Self::MapNotAllowed => "MapNotAllowed",
+        })
     }
 }
 

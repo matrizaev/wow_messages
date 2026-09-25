@@ -1,3 +1,4 @@
+use crate::parser::types::IntegerType;
 use crate::rust_printer::{ByteType, UpdateMaskDataType, UpdateMaskMember, UpdateMaskObjectType};
 
 pub(crate) const FIELDS: &[UpdateMaskMember] = &[
@@ -2008,11 +2009,13 @@ pub(crate) const FIELDS: &[UpdateMaskMember] = &[
         "BUYBACK_PRICE",
         0x04B1,
         12,
-        UpdateMaskDataType::IntArrayUsingEnum {
+        UpdateMaskDataType::ArrayOfInteger {
+            integer_type: IntegerType::U32,
             name: "BuybackSlot",
-            variable_name: "slot",
+            variable_name: "buyback_slot",
             import_location: "crate::wrath",
-            index_offset: 74,
+            index_origin: 74,
+            size: 1,
         },
     ),
     UpdateMaskMember::new(
@@ -2020,11 +2023,13 @@ pub(crate) const FIELDS: &[UpdateMaskMember] = &[
         "BUYBACK_TIMESTAMP",
         0x04bd,
         12,
-        UpdateMaskDataType::IntArrayUsingEnum {
+        UpdateMaskDataType::ArrayOfInteger {
+            integer_type: IntegerType::U32,
             name: "BuybackSlot",
-            variable_name: "slot",
+            variable_name: "buyback_slot",
             import_location: "crate::wrath",
-            index_offset: 74,
+            index_origin: 74,
+            size: 1,
         },
     ),
     UpdateMaskMember::new(

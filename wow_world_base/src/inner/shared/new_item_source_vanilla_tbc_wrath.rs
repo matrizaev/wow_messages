@@ -5,9 +5,10 @@
 ///     FROM_NPC = 1;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum NewItemSource {
+    #[default]
     Looted,
     FromNpc,
 }
@@ -49,18 +50,12 @@ impl NewItemSource {
 
 const NAME: &str = "NewItemSource";
 
-impl Default for NewItemSource {
-    fn default() -> Self {
-        Self::Looted
-    }
-}
-
 impl std::fmt::Display for NewItemSource {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Looted => f.write_str("Looted"),
-            Self::FromNpc => f.write_str("FromNpc"),
-        }
+        f.write_str(match self {
+            Self::Looted => "Looted",
+            Self::FromNpc => "FromNpc",
+        })
     }
 }
 

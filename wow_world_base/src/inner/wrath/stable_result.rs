@@ -9,10 +9,11 @@
 ///     ERR_EXOTIC = 0x0C;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum StableResult {
     /// you don't have enough money
+    #[default]
     ErrMoney,
     /// currently used in most fail cases
     ErrStable,
@@ -79,22 +80,16 @@ impl StableResult {
 
 const NAME: &str = "StableResult";
 
-impl Default for StableResult {
-    fn default() -> Self {
-        Self::ErrMoney
-    }
-}
-
 impl std::fmt::Display for StableResult {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::ErrMoney => f.write_str("ErrMoney"),
-            Self::ErrStable => f.write_str("ErrStable"),
-            Self::SuccessStable => f.write_str("SuccessStable"),
-            Self::SuccessUnstable => f.write_str("SuccessUnstable"),
-            Self::SuccessBuySlot => f.write_str("SuccessBuySlot"),
-            Self::ErrExotic => f.write_str("ErrExotic"),
-        }
+        f.write_str(match self {
+            Self::ErrMoney => "ErrMoney",
+            Self::ErrStable => "ErrStable",
+            Self::SuccessStable => "SuccessStable",
+            Self::SuccessUnstable => "SuccessUnstable",
+            Self::SuccessBuySlot => "SuccessBuySlot",
+            Self::ErrExotic => "ErrExotic",
+        })
     }
 }
 

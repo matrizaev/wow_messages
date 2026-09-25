@@ -5,9 +5,10 @@
 ///     FLED = 1;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum DuelWinnerReason {
+    #[default]
     Won,
     Fled,
 }
@@ -49,18 +50,12 @@ impl DuelWinnerReason {
 
 const NAME: &str = "DuelWinnerReason";
 
-impl Default for DuelWinnerReason {
-    fn default() -> Self {
-        Self::Won
-    }
-}
-
 impl std::fmt::Display for DuelWinnerReason {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Won => f.write_str("Won"),
-            Self::Fled => f.write_str("Fled"),
-        }
+        f.write_str(match self {
+            Self::Won => "Won",
+            Self::Fled => "Fled",
+        })
     }
 }
 

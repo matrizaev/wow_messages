@@ -17,9 +17,10 @@
 ///     SIGNED_OFF = 13;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum GuildEvent {
+    #[default]
     Promotion,
     Demotion,
     Motd,
@@ -121,30 +122,24 @@ impl GuildEvent {
 
 const NAME: &str = "GuildEvent";
 
-impl Default for GuildEvent {
-    fn default() -> Self {
-        Self::Promotion
-    }
-}
-
 impl std::fmt::Display for GuildEvent {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Promotion => f.write_str("Promotion"),
-            Self::Demotion => f.write_str("Demotion"),
-            Self::Motd => f.write_str("Motd"),
-            Self::Joined => f.write_str("Joined"),
-            Self::Left => f.write_str("Left"),
-            Self::Removed => f.write_str("Removed"),
-            Self::LeaderIs => f.write_str("LeaderIs"),
-            Self::LeaderChanged => f.write_str("LeaderChanged"),
-            Self::Disbanded => f.write_str("Disbanded"),
-            Self::TabardChanged => f.write_str("TabardChanged"),
-            Self::Unknown10 => f.write_str("Unknown10"),
-            Self::RosterUpdate => f.write_str("RosterUpdate"),
-            Self::SignedOn => f.write_str("SignedOn"),
-            Self::SignedOff => f.write_str("SignedOff"),
-        }
+        f.write_str(match self {
+            Self::Promotion => "Promotion",
+            Self::Demotion => "Demotion",
+            Self::Motd => "Motd",
+            Self::Joined => "Joined",
+            Self::Left => "Left",
+            Self::Removed => "Removed",
+            Self::LeaderIs => "LeaderIs",
+            Self::LeaderChanged => "LeaderChanged",
+            Self::Disbanded => "Disbanded",
+            Self::TabardChanged => "TabardChanged",
+            Self::Unknown10 => "Unknown10",
+            Self::RosterUpdate => "RosterUpdate",
+            Self::SignedOn => "SignedOn",
+            Self::SignedOff => "SignedOff",
+        })
     }
 }
 

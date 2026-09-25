@@ -11,9 +11,10 @@
 ///     REWARD2 = 7;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum QuestGiverStatus {
+    #[default]
     None,
     Unavailable,
     Chat,
@@ -87,24 +88,18 @@ impl QuestGiverStatus {
 
 const NAME: &str = "QuestGiverStatus";
 
-impl Default for QuestGiverStatus {
-    fn default() -> Self {
-        Self::None
-    }
-}
-
 impl std::fmt::Display for QuestGiverStatus {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::None => f.write_str("None"),
-            Self::Unavailable => f.write_str("Unavailable"),
-            Self::Chat => f.write_str("Chat"),
-            Self::Incomplete => f.write_str("Incomplete"),
-            Self::RewardRep => f.write_str("RewardRep"),
-            Self::Available => f.write_str("Available"),
-            Self::RewardOld => f.write_str("RewardOld"),
-            Self::Reward2 => f.write_str("Reward2"),
-        }
+        f.write_str(match self {
+            Self::None => "None",
+            Self::Unavailable => "Unavailable",
+            Self::Chat => "Chat",
+            Self::Incomplete => "Incomplete",
+            Self::RewardRep => "RewardRep",
+            Self::Available => "Available",
+            Self::RewardOld => "RewardOld",
+            Self::Reward2 => "Reward2",
+        })
     }
 }
 

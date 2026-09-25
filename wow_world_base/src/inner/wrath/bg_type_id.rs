@@ -17,10 +17,11 @@
 ///     REMOVE_FROM_QUEUE = 0xFFFFFFFE;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum BgTypeId {
     /// Your group has joined a battleground queue, but you are not eligible
+    #[default]
     NotEligible,
     /// Your group has joined the queue for AV
     QueuedForAv,
@@ -126,30 +127,24 @@ impl BgTypeId {
 
 const NAME: &str = "BgTypeId";
 
-impl Default for BgTypeId {
-    fn default() -> Self {
-        Self::NotEligible
-    }
-}
-
 impl std::fmt::Display for BgTypeId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::NotEligible => f.write_str("NotEligible"),
-            Self::QueuedForAv => f.write_str("QueuedForAv"),
-            Self::QueuedForWsg => f.write_str("QueuedForWsg"),
-            Self::QueuedForAb => f.write_str("QueuedForAb"),
-            Self::QueuedForNetherstorm => f.write_str("QueuedForNetherstorm"),
-            Self::QueuedForBladesEdgeArena => f.write_str("QueuedForBladesEdgeArena"),
-            Self::QueuedForArena => f.write_str("QueuedForArena"),
-            Self::QueuedForEyeOfTheStorm => f.write_str("QueuedForEyeOfTheStorm"),
-            Self::QueuedForRuinsOfLordaeron => f.write_str("QueuedForRuinsOfLordaeron"),
-            Self::QueuedForStrandOfTheAncient => f.write_str("QueuedForStrandOfTheAncient"),
-            Self::QueuedForDalaranSewers => f.write_str("QueuedForDalaranSewers"),
-            Self::QueuedForRingOfValor => f.write_str("QueuedForRingOfValor"),
-            Self::QueuedForIsleOfConquest => f.write_str("QueuedForIsleOfConquest"),
-            Self::RemoveFromQueue => f.write_str("RemoveFromQueue"),
-        }
+        f.write_str(match self {
+            Self::NotEligible => "NotEligible",
+            Self::QueuedForAv => "QueuedForAv",
+            Self::QueuedForWsg => "QueuedForWsg",
+            Self::QueuedForAb => "QueuedForAb",
+            Self::QueuedForNetherstorm => "QueuedForNetherstorm",
+            Self::QueuedForBladesEdgeArena => "QueuedForBladesEdgeArena",
+            Self::QueuedForArena => "QueuedForArena",
+            Self::QueuedForEyeOfTheStorm => "QueuedForEyeOfTheStorm",
+            Self::QueuedForRuinsOfLordaeron => "QueuedForRuinsOfLordaeron",
+            Self::QueuedForStrandOfTheAncient => "QueuedForStrandOfTheAncient",
+            Self::QueuedForDalaranSewers => "QueuedForDalaranSewers",
+            Self::QueuedForRingOfValor => "QueuedForRingOfValor",
+            Self::QueuedForIsleOfConquest => "QueuedForIsleOfConquest",
+            Self::RemoveFromQueue => "RemoveFromQueue",
+        })
     }
 }
 

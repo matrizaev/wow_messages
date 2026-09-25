@@ -5,9 +5,10 @@
 ///     FAILURE = 10;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum ItemRefundResult {
+    #[default]
     Success,
     Failure,
 }
@@ -49,18 +50,12 @@ impl ItemRefundResult {
 
 const NAME: &str = "ItemRefundResult";
 
-impl Default for ItemRefundResult {
-    fn default() -> Self {
-        Self::Success
-    }
-}
-
 impl std::fmt::Display for ItemRefundResult {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Success => f.write_str("Success"),
-            Self::Failure => f.write_str("Failure"),
-        }
+        f.write_str(match self {
+            Self::Success => "Success",
+            Self::Failure => "Failure",
+        })
     }
 }
 

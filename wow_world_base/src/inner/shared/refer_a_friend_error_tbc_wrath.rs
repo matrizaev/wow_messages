@@ -17,9 +17,10 @@
 ///     SUMMON_OFFLINE = 0x0D;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum ReferAFriendError {
+    #[default]
     None,
     NotReferredBy,
     TargetTooHigh,
@@ -121,30 +122,24 @@ impl ReferAFriendError {
 
 const NAME: &str = "ReferAFriendError";
 
-impl Default for ReferAFriendError {
-    fn default() -> Self {
-        Self::None
-    }
-}
-
 impl std::fmt::Display for ReferAFriendError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::None => f.write_str("None"),
-            Self::NotReferredBy => f.write_str("NotReferredBy"),
-            Self::TargetTooHigh => f.write_str("TargetTooHigh"),
-            Self::InsufficientGrantableLevels => f.write_str("InsufficientGrantableLevels"),
-            Self::TooFar => f.write_str("TooFar"),
-            Self::DifferentFaction => f.write_str("DifferentFaction"),
-            Self::NotNow => f.write_str("NotNow"),
-            Self::GrantLevelMax => f.write_str("GrantLevelMax"),
-            Self::NoTarget => f.write_str("NoTarget"),
-            Self::NotInGroup => f.write_str("NotInGroup"),
-            Self::SummonLevelMax => f.write_str("SummonLevelMax"),
-            Self::SummonCooldown => f.write_str("SummonCooldown"),
-            Self::InsufficientExpansionLevel => f.write_str("InsufficientExpansionLevel"),
-            Self::SummonOffline => f.write_str("SummonOffline"),
-        }
+        f.write_str(match self {
+            Self::None => "None",
+            Self::NotReferredBy => "NotReferredBy",
+            Self::TargetTooHigh => "TargetTooHigh",
+            Self::InsufficientGrantableLevels => "InsufficientGrantableLevels",
+            Self::TooFar => "TooFar",
+            Self::DifferentFaction => "DifferentFaction",
+            Self::NotNow => "NotNow",
+            Self::GrantLevelMax => "GrantLevelMax",
+            Self::NoTarget => "NoTarget",
+            Self::NotInGroup => "NotInGroup",
+            Self::SummonLevelMax => "SummonLevelMax",
+            Self::SummonCooldown => "SummonCooldown",
+            Self::InsufficientExpansionLevel => "InsufficientExpansionLevel",
+            Self::SummonOffline => "SummonOffline",
+        })
     }
 }
 

@@ -5,9 +5,10 @@
 ///     DISABLED = 0;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum GmTicketQueueStatus {
+    #[default]
     Enabled,
     Disabled,
 }
@@ -49,18 +50,12 @@ impl GmTicketQueueStatus {
 
 const NAME: &str = "GmTicketQueueStatus";
 
-impl Default for GmTicketQueueStatus {
-    fn default() -> Self {
-        Self::Enabled
-    }
-}
-
 impl std::fmt::Display for GmTicketQueueStatus {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Enabled => f.write_str("Enabled"),
-            Self::Disabled => f.write_str("Disabled"),
-        }
+        f.write_str(match self {
+            Self::Enabled => "Enabled",
+            Self::Disabled => "Disabled",
+        })
     }
 }
 

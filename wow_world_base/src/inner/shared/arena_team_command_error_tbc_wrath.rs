@@ -18,9 +18,10 @@
 ///     ARENA_TEAM_TOO_MANY_MEMBERS_S = 0x16;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum ArenaTeamCommandError {
+    #[default]
     ArenaTeamInternal,
     AlreadyInArenaTeam,
     AlreadyInArenaTeamS,
@@ -128,31 +129,25 @@ impl ArenaTeamCommandError {
 
 const NAME: &str = "ArenaTeamCommandError";
 
-impl Default for ArenaTeamCommandError {
-    fn default() -> Self {
-        Self::ArenaTeamInternal
-    }
-}
-
 impl std::fmt::Display for ArenaTeamCommandError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::ArenaTeamInternal => f.write_str("ArenaTeamInternal"),
-            Self::AlreadyInArenaTeam => f.write_str("AlreadyInArenaTeam"),
-            Self::AlreadyInArenaTeamS => f.write_str("AlreadyInArenaTeamS"),
-            Self::InvitedToArenaTeam => f.write_str("InvitedToArenaTeam"),
-            Self::AlreadyInvitedToArenaTeamS => f.write_str("AlreadyInvitedToArenaTeamS"),
-            Self::ArenaTeamNameInvalid => f.write_str("ArenaTeamNameInvalid"),
-            Self::ArenaTeamNameExistsS => f.write_str("ArenaTeamNameExistsS"),
-            Self::ArenaTeamLeaderLeaveS => f.write_str("ArenaTeamLeaderLeaveS"),
-            Self::ArenaTeamPlayerNotInTeam => f.write_str("ArenaTeamPlayerNotInTeam"),
-            Self::ArenaTeamPlayerNotInTeamSs => f.write_str("ArenaTeamPlayerNotInTeamSs"),
-            Self::ArenaTeamPlayerNotFoundS => f.write_str("ArenaTeamPlayerNotFoundS"),
-            Self::ArenaTeamNotAllied => f.write_str("ArenaTeamNotAllied"),
-            Self::ArenaTeamIgnoringYouS => f.write_str("ArenaTeamIgnoringYouS"),
-            Self::ArenaTeamTargetTooLowS => f.write_str("ArenaTeamTargetTooLowS"),
-            Self::ArenaTeamTooManyMembersS => f.write_str("ArenaTeamTooManyMembersS"),
-        }
+        f.write_str(match self {
+            Self::ArenaTeamInternal => "ArenaTeamInternal",
+            Self::AlreadyInArenaTeam => "AlreadyInArenaTeam",
+            Self::AlreadyInArenaTeamS => "AlreadyInArenaTeamS",
+            Self::InvitedToArenaTeam => "InvitedToArenaTeam",
+            Self::AlreadyInvitedToArenaTeamS => "AlreadyInvitedToArenaTeamS",
+            Self::ArenaTeamNameInvalid => "ArenaTeamNameInvalid",
+            Self::ArenaTeamNameExistsS => "ArenaTeamNameExistsS",
+            Self::ArenaTeamLeaderLeaveS => "ArenaTeamLeaderLeaveS",
+            Self::ArenaTeamPlayerNotInTeam => "ArenaTeamPlayerNotInTeam",
+            Self::ArenaTeamPlayerNotInTeamSs => "ArenaTeamPlayerNotInTeamSs",
+            Self::ArenaTeamPlayerNotFoundS => "ArenaTeamPlayerNotFoundS",
+            Self::ArenaTeamNotAllied => "ArenaTeamNotAllied",
+            Self::ArenaTeamIgnoringYouS => "ArenaTeamIgnoringYouS",
+            Self::ArenaTeamTargetTooLowS => "ArenaTeamTargetTooLowS",
+            Self::ArenaTeamTooManyMembersS => "ArenaTeamTooManyMembersS",
+        })
     }
 }
 

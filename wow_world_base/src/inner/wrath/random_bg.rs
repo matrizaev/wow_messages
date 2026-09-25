@@ -5,9 +5,10 @@
 ///     RANDOM = 1;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum RandomBg {
+    #[default]
     NotRandom,
     Random,
 }
@@ -49,18 +50,12 @@ impl RandomBg {
 
 const NAME: &str = "RandomBg";
 
-impl Default for RandomBg {
-    fn default() -> Self {
-        Self::NotRandom
-    }
-}
-
 impl std::fmt::Display for RandomBg {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::NotRandom => f.write_str("NotRandom"),
-            Self::Random => f.write_str("Random"),
-        }
+        f.write_str(match self {
+            Self::NotRandom => "NotRandom",
+            Self::Random => "Random",
+        })
     }
 }
 

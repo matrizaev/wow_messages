@@ -16,9 +16,10 @@
 ///     DAILY_QUEST_COMPLETED_TODAY = 29;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum QuestFailedReason {
+    #[default]
     DontHaveReq,
     /// DESCRIPTION You are not high enough level for that quest.
     QuestFailedLowLevel,
@@ -127,29 +128,23 @@ impl QuestFailedReason {
 
 const NAME: &str = "QuestFailedReason";
 
-impl Default for QuestFailedReason {
-    fn default() -> Self {
-        Self::DontHaveReq
-    }
-}
-
 impl std::fmt::Display for QuestFailedReason {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::DontHaveReq => f.write_str("DontHaveReq"),
-            Self::QuestFailedLowLevel => f.write_str("QuestFailedLowLevel"),
-            Self::QuestFailedWrongRace => f.write_str("QuestFailedWrongRace"),
-            Self::QuestAlreadyDone => f.write_str("QuestAlreadyDone"),
-            Self::QuestOnlyOneTimed => f.write_str("QuestOnlyOneTimed"),
-            Self::QuestAlreadyOn => f.write_str("QuestAlreadyOn"),
-            Self::QuestFailedExpansion => f.write_str("QuestFailedExpansion"),
-            Self::QuestAlreadyOn2 => f.write_str("QuestAlreadyOn2"),
-            Self::QuestFailedMissingItems => f.write_str("QuestFailedMissingItems"),
-            Self::QuestFailedNotEnoughMoney => f.write_str("QuestFailedNotEnoughMoney"),
-            Self::DailyQuestsRemaining => f.write_str("DailyQuestsRemaining"),
-            Self::QuestFailedCais => f.write_str("QuestFailedCais"),
-            Self::DailyQuestCompletedToday => f.write_str("DailyQuestCompletedToday"),
-        }
+        f.write_str(match self {
+            Self::DontHaveReq => "DontHaveReq",
+            Self::QuestFailedLowLevel => "QuestFailedLowLevel",
+            Self::QuestFailedWrongRace => "QuestFailedWrongRace",
+            Self::QuestAlreadyDone => "QuestAlreadyDone",
+            Self::QuestOnlyOneTimed => "QuestOnlyOneTimed",
+            Self::QuestAlreadyOn => "QuestAlreadyOn",
+            Self::QuestFailedExpansion => "QuestFailedExpansion",
+            Self::QuestAlreadyOn2 => "QuestAlreadyOn2",
+            Self::QuestFailedMissingItems => "QuestFailedMissingItems",
+            Self::QuestFailedNotEnoughMoney => "QuestFailedNotEnoughMoney",
+            Self::DailyQuestsRemaining => "DailyQuestsRemaining",
+            Self::QuestFailedCais => "QuestFailedCais",
+            Self::DailyQuestCompletedToday => "DailyQuestCompletedToday",
+        })
     }
 }
 

@@ -6,9 +6,10 @@
 ///     TOGGLE = 2;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum CommentatorEnableOption {
+    #[default]
     Disable,
     Enable,
     Toggle,
@@ -55,19 +56,13 @@ impl CommentatorEnableOption {
 
 const NAME: &str = "CommentatorEnableOption";
 
-impl Default for CommentatorEnableOption {
-    fn default() -> Self {
-        Self::Disable
-    }
-}
-
 impl std::fmt::Display for CommentatorEnableOption {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Disable => f.write_str("Disable"),
-            Self::Enable => f.write_str("Enable"),
-            Self::Toggle => f.write_str("Toggle"),
-        }
+        f.write_str(match self {
+            Self::Disable => "Disable",
+            Self::Enable => "Enable",
+            Self::Toggle => "Toggle",
+        })
     }
 }
 

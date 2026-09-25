@@ -11,9 +11,10 @@
 ///     ILLIDAN = 7;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum PageTextMaterial {
+    #[default]
     None,
     Parchment,
     Stone,
@@ -85,24 +86,18 @@ impl PageTextMaterial {
 
 const NAME: &str = "PageTextMaterial";
 
-impl Default for PageTextMaterial {
-    fn default() -> Self {
-        Self::None
-    }
-}
-
 impl std::fmt::Display for PageTextMaterial {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::None => f.write_str("None"),
-            Self::Parchment => f.write_str("Parchment"),
-            Self::Stone => f.write_str("Stone"),
-            Self::Marble => f.write_str("Marble"),
-            Self::Silver => f.write_str("Silver"),
-            Self::Bronze => f.write_str("Bronze"),
-            Self::Valentine => f.write_str("Valentine"),
-            Self::Illidan => f.write_str("Illidan"),
-        }
+        f.write_str(match self {
+            Self::None => "None",
+            Self::Parchment => "Parchment",
+            Self::Stone => "Stone",
+            Self::Marble => "Marble",
+            Self::Silver => "Silver",
+            Self::Bronze => "Bronze",
+            Self::Valentine => "Valentine",
+            Self::Illidan => "Illidan",
+        })
     }
 }
 

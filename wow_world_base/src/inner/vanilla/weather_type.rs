@@ -7,9 +7,10 @@
 ///     STORM = 3;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum WeatherType {
+    #[default]
     Fine,
     Rain,
     Snow,
@@ -61,20 +62,14 @@ impl WeatherType {
 
 const NAME: &str = "WeatherType";
 
-impl Default for WeatherType {
-    fn default() -> Self {
-        Self::Fine
-    }
-}
-
 impl std::fmt::Display for WeatherType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Fine => f.write_str("Fine"),
-            Self::Rain => f.write_str("Rain"),
-            Self::Snow => f.write_str("Snow"),
-            Self::Storm => f.write_str("Storm"),
-        }
+        f.write_str(match self {
+            Self::Fine => "Fine",
+            Self::Rain => "Rain",
+            Self::Snow => "Snow",
+            Self::Storm => "Storm",
+        })
     }
 }
 

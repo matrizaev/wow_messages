@@ -7,8 +7,9 @@
 ///     ROLEPLAYING_PLAYER_VS_PLAYER = 8;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 pub enum RealmType {
+    #[default]
     PlayerVsEnvironment,
     PlayerVsPlayer,
     Roleplaying,
@@ -47,20 +48,14 @@ impl RealmType {
 
 const NAME: &str = "RealmType";
 
-impl Default for RealmType {
-    fn default() -> Self {
-        Self::PlayerVsEnvironment
-    }
-}
-
 impl std::fmt::Display for RealmType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::PlayerVsEnvironment => f.write_str("PlayerVsEnvironment"),
-            Self::PlayerVsPlayer => f.write_str("PlayerVsPlayer"),
-            Self::Roleplaying => f.write_str("Roleplaying"),
-            Self::RoleplayingPlayerVsPlayer => f.write_str("RoleplayingPlayerVsPlayer"),
-        }
+        f.write_str(match self {
+            Self::PlayerVsEnvironment => "PlayerVsEnvironment",
+            Self::PlayerVsPlayer => "PlayerVsPlayer",
+            Self::Roleplaying => "Roleplaying",
+            Self::RoleplayingPlayerVsPlayer => "RoleplayingPlayerVsPlayer",
+        })
     }
 }
 

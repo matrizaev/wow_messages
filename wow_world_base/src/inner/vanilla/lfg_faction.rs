@@ -10,9 +10,10 @@
 ///     ALLIANCE = 1;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum LfgFaction {
+    #[default]
     Neutral,
     Horde,
     Alliance,
@@ -59,19 +60,13 @@ impl LfgFaction {
 
 const NAME: &str = "LfgFaction";
 
-impl Default for LfgFaction {
-    fn default() -> Self {
-        Self::Neutral
-    }
-}
-
 impl std::fmt::Display for LfgFaction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Neutral => f.write_str("Neutral"),
-            Self::Horde => f.write_str("Horde"),
-            Self::Alliance => f.write_str("Alliance"),
-        }
+        f.write_str(match self {
+            Self::Neutral => "Neutral",
+            Self::Horde => "Horde",
+            Self::Alliance => "Alliance",
+        })
     }
 }
 

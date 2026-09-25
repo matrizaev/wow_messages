@@ -16,9 +16,10 @@
 ///     DECLENSION_DOESNT_MATCH_BASE_NAME = 16;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum PetNameInvalidReason {
+    #[default]
     Invalid,
     NoName,
     TooShort,
@@ -115,29 +116,23 @@ impl PetNameInvalidReason {
 
 const NAME: &str = "PetNameInvalidReason";
 
-impl Default for PetNameInvalidReason {
-    fn default() -> Self {
-        Self::Invalid
-    }
-}
-
 impl std::fmt::Display for PetNameInvalidReason {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Invalid => f.write_str("Invalid"),
-            Self::NoName => f.write_str("NoName"),
-            Self::TooShort => f.write_str("TooShort"),
-            Self::TooLong => f.write_str("TooLong"),
-            Self::MixedLanguages => f.write_str("MixedLanguages"),
-            Self::Profane => f.write_str("Profane"),
-            Self::Reserved => f.write_str("Reserved"),
-            Self::ThreeConsecutive => f.write_str("ThreeConsecutive"),
-            Self::InvalidSpace => f.write_str("InvalidSpace"),
-            Self::ConsecutiveSpaces => f.write_str("ConsecutiveSpaces"),
-            Self::RussianConsecutiveSilentCharacters => f.write_str("RussianConsecutiveSilentCharacters"),
-            Self::RussianSilentCharacterAtBeginningOrEnd => f.write_str("RussianSilentCharacterAtBeginningOrEnd"),
-            Self::DeclensionDoesntMatchBaseName => f.write_str("DeclensionDoesntMatchBaseName"),
-        }
+        f.write_str(match self {
+            Self::Invalid => "Invalid",
+            Self::NoName => "NoName",
+            Self::TooShort => "TooShort",
+            Self::TooLong => "TooLong",
+            Self::MixedLanguages => "MixedLanguages",
+            Self::Profane => "Profane",
+            Self::Reserved => "Reserved",
+            Self::ThreeConsecutive => "ThreeConsecutive",
+            Self::InvalidSpace => "InvalidSpace",
+            Self::ConsecutiveSpaces => "ConsecutiveSpaces",
+            Self::RussianConsecutiveSilentCharacters => "RussianConsecutiveSilentCharacters",
+            Self::RussianSilentCharacterAtBeginningOrEnd => "RussianSilentCharacterAtBeginningOrEnd",
+            Self::DeclensionDoesntMatchBaseName => "DeclensionDoesntMatchBaseName",
+        })
     }
 }
 

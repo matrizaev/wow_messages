@@ -6,9 +6,10 @@
 ///     MEETINGSTONE_FAIL_RAID_GROUP = 3;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum MeetingStoneFailure {
+    #[default]
     MeetingstoneFailPartyleader,
     MeetingstoneFailFullGroup,
     MeetingstoneFailRaidGroup,
@@ -55,19 +56,13 @@ impl MeetingStoneFailure {
 
 const NAME: &str = "MeetingStoneFailure";
 
-impl Default for MeetingStoneFailure {
-    fn default() -> Self {
-        Self::MeetingstoneFailPartyleader
-    }
-}
-
 impl std::fmt::Display for MeetingStoneFailure {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::MeetingstoneFailPartyleader => f.write_str("MeetingstoneFailPartyleader"),
-            Self::MeetingstoneFailFullGroup => f.write_str("MeetingstoneFailFullGroup"),
-            Self::MeetingstoneFailRaidGroup => f.write_str("MeetingstoneFailRaidGroup"),
-        }
+        f.write_str(match self {
+            Self::MeetingstoneFailPartyleader => "MeetingstoneFailPartyleader",
+            Self::MeetingstoneFailFullGroup => "MeetingstoneFailFullGroup",
+            Self::MeetingstoneFailRaidGroup => "MeetingstoneFailRaidGroup",
+        })
     }
 }
 

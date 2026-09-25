@@ -8,10 +8,11 @@
 ///     DESTROY = 4;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum AiReaction {
     /// pre-aggro (used in client packet handler)
+    #[default]
     Alert,
     /// (NOT used in client packet handler)
     Friendly,
@@ -72,21 +73,15 @@ impl AiReaction {
 
 const NAME: &str = "AiReaction";
 
-impl Default for AiReaction {
-    fn default() -> Self {
-        Self::Alert
-    }
-}
-
 impl std::fmt::Display for AiReaction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Alert => f.write_str("Alert"),
-            Self::Friendly => f.write_str("Friendly"),
-            Self::Hostile => f.write_str("Hostile"),
-            Self::Afraid => f.write_str("Afraid"),
-            Self::Destroy => f.write_str("Destroy"),
-        }
+        f.write_str(match self {
+            Self::Alert => "Alert",
+            Self::Friendly => "Friendly",
+            Self::Hostile => "Hostile",
+            Self::Afraid => "Afraid",
+            Self::Destroy => "Destroy",
+        })
     }
 }
 

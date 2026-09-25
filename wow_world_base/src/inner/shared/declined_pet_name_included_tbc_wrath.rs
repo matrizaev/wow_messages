@@ -5,9 +5,10 @@
 ///     INCLUDED = 1;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum DeclinedPetNameIncluded {
+    #[default]
     NotIncluded,
     Included,
 }
@@ -49,18 +50,12 @@ impl DeclinedPetNameIncluded {
 
 const NAME: &str = "DeclinedPetNameIncluded";
 
-impl Default for DeclinedPetNameIncluded {
-    fn default() -> Self {
-        Self::NotIncluded
-    }
-}
-
 impl std::fmt::Display for DeclinedPetNameIncluded {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::NotIncluded => f.write_str("NotIncluded"),
-            Self::Included => f.write_str("Included"),
-        }
+        f.write_str(match self {
+            Self::NotIncluded => "NotIncluded",
+            Self::Included => "Included",
+        })
     }
 }
 

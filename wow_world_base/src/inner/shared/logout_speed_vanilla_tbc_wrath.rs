@@ -5,9 +5,10 @@
 ///     INSTANT = 1;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum LogoutSpeed {
+    #[default]
     Delayed,
     Instant,
 }
@@ -49,18 +50,12 @@ impl LogoutSpeed {
 
 const NAME: &str = "LogoutSpeed";
 
-impl Default for LogoutSpeed {
-    fn default() -> Self {
-        Self::Delayed
-    }
-}
-
 impl std::fmt::Display for LogoutSpeed {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Delayed => f.write_str("Delayed"),
-            Self::Instant => f.write_str("Instant"),
-        }
+        f.write_str(match self {
+            Self::Delayed => "Delayed",
+            Self::Instant => "Instant",
+        })
     }
 }
 

@@ -7,9 +7,10 @@
 ///     GM = 3;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum PlayerChatTag {
+    #[default]
     None,
     Afk,
     Dnd,
@@ -61,20 +62,14 @@ impl PlayerChatTag {
 
 const NAME: &str = "PlayerChatTag";
 
-impl Default for PlayerChatTag {
-    fn default() -> Self {
-        Self::None
-    }
-}
-
 impl std::fmt::Display for PlayerChatTag {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::None => f.write_str("None"),
-            Self::Afk => f.write_str("Afk"),
-            Self::Dnd => f.write_str("Dnd"),
-            Self::Gm => f.write_str("Gm"),
-        }
+        f.write_str(match self {
+            Self::None => "None",
+            Self::Afk => "Afk",
+            Self::Dnd => "Dnd",
+            Self::Gm => "Gm",
+        })
     }
 }
 

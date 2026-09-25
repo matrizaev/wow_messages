@@ -5,9 +5,10 @@
 ///     CREATED = 1;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum NewItemCreationType {
+    #[default]
     Received,
     Created,
 }
@@ -49,18 +50,12 @@ impl NewItemCreationType {
 
 const NAME: &str = "NewItemCreationType";
 
-impl Default for NewItemCreationType {
-    fn default() -> Self {
-        Self::Received
-    }
-}
-
 impl std::fmt::Display for NewItemCreationType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Received => f.write_str("Received"),
-            Self::Created => f.write_str("Created"),
-        }
+        f.write_str(match self {
+            Self::Received => "Received",
+            Self::Created => "Created",
+        })
     }
 }
 

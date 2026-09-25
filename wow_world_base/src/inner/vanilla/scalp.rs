@@ -9,9 +9,10 @@
 ///     BALD = 1;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum Scalp {
+    #[default]
     Hair,
     Bald,
 }
@@ -53,18 +54,12 @@ impl Scalp {
 
 const NAME: &str = "Scalp";
 
-impl Default for Scalp {
-    fn default() -> Self {
-        Self::Hair
-    }
-}
-
 impl std::fmt::Display for Scalp {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Hair => f.write_str("Hair"),
-            Self::Bald => f.write_str("Bald"),
-        }
+        f.write_str(match self {
+            Self::Hair => "Hair",
+            Self::Bald => "Bald",
+        })
     }
 }
 

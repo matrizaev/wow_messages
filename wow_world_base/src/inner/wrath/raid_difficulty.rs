@@ -7,9 +7,10 @@
 ///     TWENTY_FIVE_MAN_HEROIC = 3;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum RaidDifficulty {
+    #[default]
     TenManNormal,
     TwentyFiveManNormal,
     TenManHeroic,
@@ -61,20 +62,14 @@ impl RaidDifficulty {
 
 const NAME: &str = "RaidDifficulty";
 
-impl Default for RaidDifficulty {
-    fn default() -> Self {
-        Self::TenManNormal
-    }
-}
-
 impl std::fmt::Display for RaidDifficulty {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::TenManNormal => f.write_str("TenManNormal"),
-            Self::TwentyFiveManNormal => f.write_str("TwentyFiveManNormal"),
-            Self::TenManHeroic => f.write_str("TenManHeroic"),
-            Self::TwentyFiveManHeroic => f.write_str("TwentyFiveManHeroic"),
-        }
+        f.write_str(match self {
+            Self::TenManNormal => "TenManNormal",
+            Self::TwentyFiveManNormal => "TwentyFiveManNormal",
+            Self::TenManHeroic => "TenManHeroic",
+            Self::TwentyFiveManHeroic => "TwentyFiveManHeroic",
+        })
     }
 }
 

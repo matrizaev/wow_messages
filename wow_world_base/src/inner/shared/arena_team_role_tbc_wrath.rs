@@ -5,9 +5,10 @@
 ///     MEMBER = 1;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum ArenaTeamRole {
+    #[default]
     Captain,
     Member,
 }
@@ -49,18 +50,12 @@ impl ArenaTeamRole {
 
 const NAME: &str = "ArenaTeamRole";
 
-impl Default for ArenaTeamRole {
-    fn default() -> Self {
-        Self::Captain
-    }
-}
-
 impl std::fmt::Display for ArenaTeamRole {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Captain => f.write_str("Captain"),
-            Self::Member => f.write_str("Member"),
-        }
+        f.write_str(match self {
+            Self::Captain => "Captain",
+            Self::Member => "Member",
+        })
     }
 }
 

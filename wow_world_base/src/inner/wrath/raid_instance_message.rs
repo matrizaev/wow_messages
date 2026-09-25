@@ -8,10 +8,11 @@
 ///     EXPIRED = 5;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum RaidInstanceMessage {
     /// WARNING! %s is scheduled to reset in %d hour(s).
+    #[default]
     WarningHours,
     /// WARNING! %s is scheduled to reset in %d minute(s)!
     WarningMin,
@@ -71,21 +72,15 @@ impl RaidInstanceMessage {
 
 const NAME: &str = "RaidInstanceMessage";
 
-impl Default for RaidInstanceMessage {
-    fn default() -> Self {
-        Self::WarningHours
-    }
-}
-
 impl std::fmt::Display for RaidInstanceMessage {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::WarningHours => f.write_str("WarningHours"),
-            Self::WarningMin => f.write_str("WarningMin"),
-            Self::WarningMinSoon => f.write_str("WarningMinSoon"),
-            Self::Welcome => f.write_str("Welcome"),
-            Self::Expired => f.write_str("Expired"),
-        }
+        f.write_str(match self {
+            Self::WarningHours => "WarningHours",
+            Self::WarningMin => "WarningMin",
+            Self::WarningMinSoon => "WarningMinSoon",
+            Self::Welcome => "Welcome",
+            Self::Expired => "Expired",
+        })
     }
 }
 

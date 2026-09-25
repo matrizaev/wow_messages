@@ -13,10 +13,11 @@
 ///     QUEST_FAILED_NOT_ENOUGH_MONEY = 22;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum QuestFailedReason {
     /// this is default case
+    #[default]
     DontHaveReq,
     /// You are not high enough level for that quest.
     QuestFailedLowLevel,
@@ -107,26 +108,20 @@ impl QuestFailedReason {
 
 const NAME: &str = "QuestFailedReason";
 
-impl Default for QuestFailedReason {
-    fn default() -> Self {
-        Self::DontHaveReq
-    }
-}
-
 impl std::fmt::Display for QuestFailedReason {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::DontHaveReq => f.write_str("DontHaveReq"),
-            Self::QuestFailedLowLevel => f.write_str("QuestFailedLowLevel"),
-            Self::QuestFailedReqs => f.write_str("QuestFailedReqs"),
-            Self::QuestFailedInventoryFull => f.write_str("QuestFailedInventoryFull"),
-            Self::QuestFailedWrongRace => f.write_str("QuestFailedWrongRace"),
-            Self::QuestOnlyOneTimed => f.write_str("QuestOnlyOneTimed"),
-            Self::QuestAlreadyOn => f.write_str("QuestAlreadyOn"),
-            Self::QuestFailedDuplicateItem => f.write_str("QuestFailedDuplicateItem"),
-            Self::QuestFailedMissingItems => f.write_str("QuestFailedMissingItems"),
-            Self::QuestFailedNotEnoughMoney => f.write_str("QuestFailedNotEnoughMoney"),
-        }
+        f.write_str(match self {
+            Self::DontHaveReq => "DontHaveReq",
+            Self::QuestFailedLowLevel => "QuestFailedLowLevel",
+            Self::QuestFailedReqs => "QuestFailedReqs",
+            Self::QuestFailedInventoryFull => "QuestFailedInventoryFull",
+            Self::QuestFailedWrongRace => "QuestFailedWrongRace",
+            Self::QuestOnlyOneTimed => "QuestOnlyOneTimed",
+            Self::QuestAlreadyOn => "QuestAlreadyOn",
+            Self::QuestFailedDuplicateItem => "QuestFailedDuplicateItem",
+            Self::QuestFailedMissingItems => "QuestFailedMissingItems",
+            Self::QuestFailedNotEnoughMoney => "QuestFailedNotEnoughMoney",
+        })
     }
 }
 

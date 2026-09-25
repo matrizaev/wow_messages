@@ -7,9 +7,10 @@
 ///     OK = 3;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum BuyBankSlotResult {
+    #[default]
     FailedTooMany,
     InsufficientFunds,
     NotBanker,
@@ -61,20 +62,14 @@ impl BuyBankSlotResult {
 
 const NAME: &str = "BuyBankSlotResult";
 
-impl Default for BuyBankSlotResult {
-    fn default() -> Self {
-        Self::FailedTooMany
-    }
-}
-
 impl std::fmt::Display for BuyBankSlotResult {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::FailedTooMany => f.write_str("FailedTooMany"),
-            Self::InsufficientFunds => f.write_str("InsufficientFunds"),
-            Self::NotBanker => f.write_str("NotBanker"),
-            Self::Ok => f.write_str("Ok"),
-        }
+        f.write_str(match self {
+            Self::FailedTooMany => "FailedTooMany",
+            Self::InsufficientFunds => "InsufficientFunds",
+            Self::NotBanker => "NotBanker",
+            Self::Ok => "Ok",
+        })
     }
 }
 

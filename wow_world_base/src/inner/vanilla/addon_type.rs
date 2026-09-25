@@ -6,9 +6,10 @@
 ///     BLIZZARD = 2;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum AddonType {
+    #[default]
     Banned,
     /// Shows addon in list. Probably intended for player-created addons.
     Enabled,
@@ -57,19 +58,13 @@ impl AddonType {
 
 const NAME: &str = "AddonType";
 
-impl Default for AddonType {
-    fn default() -> Self {
-        Self::Banned
-    }
-}
-
 impl std::fmt::Display for AddonType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Banned => f.write_str("Banned"),
-            Self::Enabled => f.write_str("Enabled"),
-            Self::Blizzard => f.write_str("Blizzard"),
-        }
+        f.write_str(match self {
+            Self::Banned => "Banned",
+            Self::Enabled => "Enabled",
+            Self::Blizzard => "Blizzard",
+        })
     }
 }
 

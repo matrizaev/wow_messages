@@ -7,10 +7,11 @@
 ///     SILENTLY = 3;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum InstanceResetFailedReason {
     /// at least one player is in the instance
+    #[default]
     General,
     /// at least one player is offline
     Offline,
@@ -64,20 +65,14 @@ impl InstanceResetFailedReason {
 
 const NAME: &str = "InstanceResetFailedReason";
 
-impl Default for InstanceResetFailedReason {
-    fn default() -> Self {
-        Self::General
-    }
-}
-
 impl std::fmt::Display for InstanceResetFailedReason {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::General => f.write_str("General"),
-            Self::Offline => f.write_str("Offline"),
-            Self::Zoning => f.write_str("Zoning"),
-            Self::Silently => f.write_str("Silently"),
-        }
+        f.write_str(match self {
+            Self::General => "General",
+            Self::Offline => "Offline",
+            Self::Zoning => "Zoning",
+            Self::Silently => "Silently",
+        })
     }
 }
 

@@ -12,9 +12,10 @@
 ///     RUINS_OF_LORDAERON = 8;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum BattlegroundType {
+    #[default]
     None,
     AlteracValley,
     WarsongGulch,
@@ -91,25 +92,19 @@ impl BattlegroundType {
 
 const NAME: &str = "BattlegroundType";
 
-impl Default for BattlegroundType {
-    fn default() -> Self {
-        Self::None
-    }
-}
-
 impl std::fmt::Display for BattlegroundType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::None => f.write_str("None"),
-            Self::AlteracValley => f.write_str("AlteracValley"),
-            Self::WarsongGulch => f.write_str("WarsongGulch"),
-            Self::ArathiBasin => f.write_str("ArathiBasin"),
-            Self::Netherstorm => f.write_str("Netherstorm"),
-            Self::BladesEdgeArena => f.write_str("BladesEdgeArena"),
-            Self::Arena => f.write_str("Arena"),
-            Self::EyeOfTheStorm => f.write_str("EyeOfTheStorm"),
-            Self::RuinsOfLordaeron => f.write_str("RuinsOfLordaeron"),
-        }
+        f.write_str(match self {
+            Self::None => "None",
+            Self::AlteracValley => "AlteracValley",
+            Self::WarsongGulch => "WarsongGulch",
+            Self::ArathiBasin => "ArathiBasin",
+            Self::Netherstorm => "Netherstorm",
+            Self::BladesEdgeArena => "BladesEdgeArena",
+            Self::Arena => "Arena",
+            Self::EyeOfTheStorm => "EyeOfTheStorm",
+            Self::RuinsOfLordaeron => "RuinsOfLordaeron",
+        })
     }
 }
 

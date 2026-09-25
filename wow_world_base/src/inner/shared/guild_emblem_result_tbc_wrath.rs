@@ -9,9 +9,10 @@
 ///     INVALID_VENDOR = 5;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum GuildEmblemResult {
+    #[default]
     Success,
     InvalidTabardColors,
     NoGuild,
@@ -73,22 +74,16 @@ impl GuildEmblemResult {
 
 const NAME: &str = "GuildEmblemResult";
 
-impl Default for GuildEmblemResult {
-    fn default() -> Self {
-        Self::Success
-    }
-}
-
 impl std::fmt::Display for GuildEmblemResult {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Success => f.write_str("Success"),
-            Self::InvalidTabardColors => f.write_str("InvalidTabardColors"),
-            Self::NoGuild => f.write_str("NoGuild"),
-            Self::NotGuildMaster => f.write_str("NotGuildMaster"),
-            Self::NotEnoughMoney => f.write_str("NotEnoughMoney"),
-            Self::InvalidVendor => f.write_str("InvalidVendor"),
-        }
+        f.write_str(match self {
+            Self::Success => "Success",
+            Self::InvalidTabardColors => "InvalidTabardColors",
+            Self::NoGuild => "NoGuild",
+            Self::NotGuildMaster => "NotGuildMaster",
+            Self::NotEnoughMoney => "NotEnoughMoney",
+            Self::InvalidVendor => "InvalidVendor",
+        })
     }
 }
 

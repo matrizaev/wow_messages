@@ -9,9 +9,10 @@
 ///     NONE = 5;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum MeetingStoneStatus {
+    #[default]
     LeaveQueue,
     JoinedQueue,
     PartyMemberLeftLfg,
@@ -73,22 +74,16 @@ impl MeetingStoneStatus {
 
 const NAME: &str = "MeetingStoneStatus";
 
-impl Default for MeetingStoneStatus {
-    fn default() -> Self {
-        Self::LeaveQueue
-    }
-}
-
 impl std::fmt::Display for MeetingStoneStatus {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::LeaveQueue => f.write_str("LeaveQueue"),
-            Self::JoinedQueue => f.write_str("JoinedQueue"),
-            Self::PartyMemberLeftLfg => f.write_str("PartyMemberLeftLfg"),
-            Self::PartyMemberRemovedPartyRemoved => f.write_str("PartyMemberRemovedPartyRemoved"),
-            Self::LookingForNewPartyInQueue => f.write_str("LookingForNewPartyInQueue"),
-            Self::None => f.write_str("None"),
-        }
+        f.write_str(match self {
+            Self::LeaveQueue => "LeaveQueue",
+            Self::JoinedQueue => "JoinedQueue",
+            Self::PartyMemberLeftLfg => "PartyMemberLeftLfg",
+            Self::PartyMemberRemovedPartyRemoved => "PartyMemberRemovedPartyRemoved",
+            Self::LookingForNewPartyInQueue => "LookingForNewPartyInQueue",
+            Self::None => "None",
+        })
     }
 }
 

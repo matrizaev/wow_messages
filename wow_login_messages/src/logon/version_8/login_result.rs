@@ -20,8 +20,9 @@
 ///     FAIL_LOCKED_ENFORCED = 0x10;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 pub enum LoginResult {
+    #[default]
     Success,
     FailUnknown0,
     FailUnknown1,
@@ -112,33 +113,27 @@ impl LoginResult {
 
 const NAME: &str = "LoginResult";
 
-impl Default for LoginResult {
-    fn default() -> Self {
-        Self::Success
-    }
-}
-
 impl std::fmt::Display for LoginResult {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Success => f.write_str("Success"),
-            Self::FailUnknown0 => f.write_str("FailUnknown0"),
-            Self::FailUnknown1 => f.write_str("FailUnknown1"),
-            Self::FailBanned => f.write_str("FailBanned"),
-            Self::FailUnknownAccount => f.write_str("FailUnknownAccount"),
-            Self::FailIncorrectPassword => f.write_str("FailIncorrectPassword"),
-            Self::FailAlreadyOnline => f.write_str("FailAlreadyOnline"),
-            Self::FailNoTime => f.write_str("FailNoTime"),
-            Self::FailDbBusy => f.write_str("FailDbBusy"),
-            Self::FailVersionInvalid => f.write_str("FailVersionInvalid"),
-            Self::LoginDownloadFile => f.write_str("LoginDownloadFile"),
-            Self::FailInvalidServer => f.write_str("FailInvalidServer"),
-            Self::FailSuspended => f.write_str("FailSuspended"),
-            Self::FailNoAccess => f.write_str("FailNoAccess"),
-            Self::SuccessSurvey => f.write_str("SuccessSurvey"),
-            Self::FailParentalcontrol => f.write_str("FailParentalcontrol"),
-            Self::FailLockedEnforced => f.write_str("FailLockedEnforced"),
-        }
+        f.write_str(match self {
+            Self::Success => "Success",
+            Self::FailUnknown0 => "FailUnknown0",
+            Self::FailUnknown1 => "FailUnknown1",
+            Self::FailBanned => "FailBanned",
+            Self::FailUnknownAccount => "FailUnknownAccount",
+            Self::FailIncorrectPassword => "FailIncorrectPassword",
+            Self::FailAlreadyOnline => "FailAlreadyOnline",
+            Self::FailNoTime => "FailNoTime",
+            Self::FailDbBusy => "FailDbBusy",
+            Self::FailVersionInvalid => "FailVersionInvalid",
+            Self::LoginDownloadFile => "LoginDownloadFile",
+            Self::FailInvalidServer => "FailInvalidServer",
+            Self::FailSuspended => "FailSuspended",
+            Self::FailNoAccess => "FailNoAccess",
+            Self::SuccessSurvey => "SuccessSurvey",
+            Self::FailParentalcontrol => "FailParentalcontrol",
+            Self::FailLockedEnforced => "FailLockedEnforced",
+        })
     }
 }
 

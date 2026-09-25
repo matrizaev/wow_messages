@@ -8,9 +8,10 @@
 ///     ZONE_IS_IN_COMBAT = 0x05;
 /// }
 /// ```
-#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Ord, PartialOrd, Copy, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum TransferAbortReason {
+    #[default]
     None,
     IsFull,
     NotFound,
@@ -67,21 +68,15 @@ impl TransferAbortReason {
 
 const NAME: &str = "TransferAbortReason";
 
-impl Default for TransferAbortReason {
-    fn default() -> Self {
-        Self::None
-    }
-}
-
 impl std::fmt::Display for TransferAbortReason {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::None => f.write_str("None"),
-            Self::IsFull => f.write_str("IsFull"),
-            Self::NotFound => f.write_str("NotFound"),
-            Self::TooManyInstances => f.write_str("TooManyInstances"),
-            Self::ZoneIsInCombat => f.write_str("ZoneIsInCombat"),
-        }
+        f.write_str(match self {
+            Self::None => "None",
+            Self::IsFull => "IsFull",
+            Self::NotFound => "NotFound",
+            Self::TooManyInstances => "TooManyInstances",
+            Self::ZoneIsInCombat => "ZoneIsInCombat",
+        })
     }
 }
 
