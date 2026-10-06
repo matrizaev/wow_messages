@@ -27,7 +27,7 @@ pub(crate) fn print_rust_members_sizes(
 pub(crate) fn print_size_of_ty_rust_view(s: &mut Writer, m: &RustMember, prefix: &str) {
     let name = m.name();
 
-    let str = match m.ty() {
+    let size_expression = |prefix: &str, name: &str| match m.ty() {
         RustType::String => format!("{prefix}{name}.len() + 1"),
         RustType::CString => format!("{prefix}{name}.len() + 1"),
         RustType::SizedCString => {
@@ -42,6 +42,9 @@ pub(crate) fn print_size_of_ty_rust_view(s: &mut Writer, m: &RustMember, prefix:
         }
 
         RustType::MonsterMoveSpline(encoding) => encoding.size_expression(prefix, name),
+        RustType::FullMonsterMoveSpline => {
+            format!("crate::util::wrath_monster_move_spline_size({prefix}{name}.as_slice(), true)")
+        }
         RustType::PackedGuid => {
             format!("crate::util::packed_guid_size(&{prefix}{name})",)
         }
@@ -166,6 +169,14 @@ pub(crate) fn print_size_of_ty_rust_view(s: &mut Writer, m: &RustMember, prefix:
 
         _ => m.ty().to_type().sizes().is_constant().unwrap().to_string(),
     };
+    let str = if m.is_optional() {
+        format!(
+            "{prefix}{name}.as_ref().map_or(0, |value| {})",
+            size_expression("", "value")
+        )
+    } else {
+        size_expression(prefix, name)
+    };
     s.w_no_indent(str);
     s.wln_no_indent(m.size_comment());
 }
@@ -196,7 +207,9 @@ pub(crate) fn print_size_uncompressed_rust_view(
     function_name: &str,
 ) {
     if !r.constant_sized() {
-        let const_fn = r.members_in_struct().all(|a| a.ty().size_is_const_fn())
+        let const_fn = r
+            .members_in_struct()
+            .all(|a| !a.is_optional() && a.ty().size_is_const_fn())
             && if let Some(optional) = r.optional() {
                 optional
                     .members_in_struct()

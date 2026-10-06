@@ -1,9 +1,7 @@
 use std::fmt::{Display, Formatter};
 
 use crate::parser::types::array::{Array, ArraySize, ArrayType};
-use crate::parser::types::if_statement::{Equation, IfStatement};
 use crate::parser::types::sizes::Sizes;
-use crate::parser::types::struct_member::{StructMember, StructMemberDefinition};
 use crate::parser::types::ty::Type;
 use crate::parser::types::IntegerType;
 use crate::rust_printer::rust_view::rust_enumerator::RustEnumerator;
@@ -53,6 +51,7 @@ pub(crate) enum RustType {
         object: RustObject,
     },
     MonsterMoveSpline(MonsterMoveSplineEncoding),
+    FullMonsterMoveSpline,
     AchievementDoneArray,
     AchievementInProgressArray,
     EnchantMask,
@@ -73,175 +72,13 @@ pub(crate) enum RustType {
     CacheMask,
 }
 
-/// Typed wire layout for the Wrath full-versus-linear spline schema choice.
-///
-/// The generated Rust API exposes both branches as one `Vec<Vector3d>` field, so codegen retains
-/// branch types and discriminator while building that shared field.
-pub(crate) struct MonsterMoveSplineLayout<'a> {
-    full: &'a StructMemberDefinition,
-    linear: &'a StructMemberDefinition,
-    variable_name: &'a str,
-    flags: &'a [String],
-}
-
-impl<'a> MonsterMoveSplineLayout<'a> {
-    pub(crate) fn from_if_statement(
-        statement: &'a IfStatement,
-    ) -> Result<Option<Self>, UnsupportedMonsterMoveSplineLayout> {
-        let definitions = statement.all_definitions();
-        let has_full_spline = definitions
-            .iter()
-            .any(|definition| matches!(definition.ty(), Type::FullMonsterMoveSpline));
-        let has_linear_spline = definitions
-            .iter()
-            .any(|definition| matches!(definition.ty(), Type::MonsterMoveSplines));
-        if !has_full_spline && !has_linear_spline {
-            return Ok(None);
-        }
-
-        let has_both_layouts = has_full_spline && has_linear_spline;
-        let Equation::BitwiseAnd { values } = statement.equation() else {
-            return if has_both_layouts {
-                Err(UnsupportedMonsterMoveSplineLayout)
-            } else {
-                Ok(None)
-            };
-        };
-        if !has_both_layouts {
-            return if values.len() > 1 {
-                Err(UnsupportedMonsterMoveSplineLayout)
-            } else {
-                Ok(None)
-            };
-        }
-
-        if !is_spline_flag_type(statement.original_ty())
-            || values.is_empty()
-            || !statement.else_ifs().is_empty()
-        {
-            return Err(UnsupportedMonsterMoveSplineLayout);
-        }
-
-        fn definition(
-            members: &[StructMember],
-            ty: fn(&Type) -> bool,
-        ) -> Option<&StructMemberDefinition> {
-            let [StructMember::Definition(definition)] = members else {
-                return None;
-            };
-            ty(definition.ty()).then_some(definition)
-        }
-
-        let full = definition(statement.members(), |ty| {
-            matches!(ty, Type::FullMonsterMoveSpline)
-        })
-        .ok_or(UnsupportedMonsterMoveSplineLayout)?;
-        let linear = definition(statement.else_members(), |ty| {
-            matches!(ty, Type::MonsterMoveSplines)
-        })
-        .ok_or(UnsupportedMonsterMoveSplineLayout)?;
-        Ok(Some(Self {
-            full,
-            linear,
-            variable_name: statement.variable_name(),
-            flags: values,
-        }))
-    }
-
-    pub(crate) fn full(&self) -> &StructMemberDefinition {
-        self.full
-    }
-
-    pub(crate) fn linear(&self) -> &StructMemberDefinition {
-        self.linear
-    }
-
-    pub(crate) fn variable_name(&self) -> &str {
-        self.variable_name
-    }
-
-    pub(crate) fn flags(&self) -> &[String] {
-        self.flags
-    }
-}
-
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
-pub(crate) struct UnsupportedMonsterMoveSplineLayout;
-
-fn is_spline_flag_type(ty: &Type) -> bool {
-    matches!(
-        ty,
-        Type::Flag { e, upcast: None }
-            if e.name() == "SplineFlag" && e.ty() == &IntegerType::U32
-    )
-}
-
 #[derive(Debug, Clone)]
 pub(crate) enum MonsterMoveSplineEncoding {
     Legacy,
     Linear,
-    Full,
-    FullWhenFlagsSet {
-        variable_name: String,
-        flags: Vec<String>,
-        full_field_name: String,
-    },
 }
 
 impl MonsterMoveSplineEncoding {
-    pub(crate) fn from_layout(layout: &MonsterMoveSplineLayout<'_>) -> Self {
-        Self::FullWhenFlagsSet {
-            variable_name: layout.variable_name().to_string(),
-            flags: layout.flags().to_vec(),
-            full_field_name: layout.full().name().to_string(),
-        }
-    }
-
-    pub(crate) fn test_case_alias(&self) -> Option<&str> {
-        match self {
-            Self::FullWhenFlagsSet {
-                full_field_name, ..
-            } => Some(full_field_name),
-            Self::Legacy | Self::Linear | Self::Full => None,
-        }
-    }
-
-    pub(crate) fn condition_expression(&self, prefix: &str, accessor: &str) -> Option<String> {
-        let Self::FullWhenFlagsSet {
-            variable_name,
-            flags,
-            ..
-        } = self
-        else {
-            return None;
-        };
-
-        Some(Self::flags_expression(
-            variable_name,
-            flags,
-            prefix,
-            accessor,
-        ))
-    }
-
-    fn flags_expression(
-        variable_name: &str,
-        flags: &[String],
-        prefix: &str,
-        accessor: &str,
-    ) -> String {
-        flags
-            .iter()
-            .map(|flag| {
-                format!(
-                    "{prefix}{variable_name}.{accessor}{}()",
-                    flag.to_lowercase()
-                )
-            })
-            .collect::<Vec<_>>()
-            .join(" || ")
-    }
-
     pub(crate) fn size_expression(&self, prefix: &str, name: &str) -> String {
         match self {
             Self::Legacy => {
@@ -249,17 +86,6 @@ impl MonsterMoveSplineEncoding {
             }
             Self::Linear => format!(
                 "crate::util::wrath_monster_move_spline_size({prefix}{name}.as_slice(), false)"
-            ),
-            Self::Full => format!(
-                "crate::util::wrath_monster_move_spline_size({prefix}{name}.as_slice(), true)"
-            ),
-            Self::FullWhenFlagsSet {
-                variable_name,
-                flags,
-                ..
-            } => format!(
-                "crate::util::wrath_monster_move_spline_size({prefix}{name}.as_slice(), {})",
-                Self::flags_expression(variable_name, flags, prefix, "get_")
             ),
         }
     }
@@ -269,7 +95,7 @@ impl MonsterMoveSplineEncoding {
     }
 
     pub(crate) fn is_wrath(&self) -> bool {
-        !matches!(self, Self::Legacy)
+        matches!(self, Self::Linear)
     }
 }
 
@@ -310,9 +136,7 @@ impl RustType {
             RustType::Array { array, .. } => array.str(),
             RustType::Flag { ty_name, .. } | RustType::Enum { ty_name, .. } => ty_name.clone(),
             RustType::Struct { ty_name, .. } => ty_name.clone(),
-            RustType::MonsterMoveSpline(MonsterMoveSplineEncoding::Full) => {
-                Type::FullMonsterMoveSpline.str()
-            }
+            RustType::FullMonsterMoveSpline => Type::FullMonsterMoveSpline.str(),
             RustType::MonsterMoveSpline(_) => Type::MonsterMoveSplines.str(),
             _ => self.to_type().str(),
         }
@@ -343,9 +167,7 @@ impl RustType {
             RustType::String => Type::String,
             RustType::CString => Type::CString,
             RustType::SizedCString => Type::SizedCString,
-            RustType::MonsterMoveSpline(MonsterMoveSplineEncoding::Full) => {
-                Type::FullMonsterMoveSpline
-            }
+            RustType::FullMonsterMoveSpline => Type::FullMonsterMoveSpline,
             RustType::MonsterMoveSpline(_) => Type::MonsterMoveSplines,
             RustType::AchievementDoneArray => Type::AchievementDoneArray,
             RustType::AchievementInProgressArray => Type::AchievementInProgressArray,
@@ -370,13 +192,6 @@ impl RustType {
             RustType::Spell16 => Type::Spell16,
             RustType::Item => Type::Item,
             RustType::CacheMask => Type::CacheMask,
-        }
-    }
-
-    pub(crate) fn test_case_alias(&self) -> Option<&str> {
-        match self {
-            RustType::MonsterMoveSpline(encoding) => encoding.test_case_alias(),
-            _ => None,
         }
     }
 
@@ -408,6 +223,7 @@ impl RustType {
             | RustType::CString
             | RustType::SizedCString
             | RustType::MonsterMoveSpline(_)
+            | RustType::FullMonsterMoveSpline
             | RustType::AchievementDoneArray
             | RustType::AchievementInProgressArray
             | RustType::EnchantMask
@@ -453,7 +269,7 @@ impl RustType {
 
             RustType::Struct { object, .. } => object
                 .members_in_struct()
-                .all(|a| a.ty().size_is_const_fn()),
+                .all(|a| !a.is_optional() && a.ty().size_is_const_fn()),
 
             RustType::Enum {
                 is_simple,
@@ -471,7 +287,7 @@ impl RustType {
                     enumerators
                         .iter()
                         .flat_map(|a| a.members_in_struct())
-                        .all(|a| a.ty().size_is_const_fn())
+                        .all(|a| !a.is_optional() && a.ty().size_is_const_fn())
                 }
             }
 
@@ -486,6 +302,7 @@ impl RustType {
             | RustType::SizedCString => false,
 
             RustType::MonsterMoveSpline(encoding) => encoding.is_const_size(),
+            RustType::FullMonsterMoveSpline => true,
 
             _ => true,
         }

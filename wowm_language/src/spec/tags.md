@@ -279,6 +279,28 @@ enum Map : u8 {
 
 ## For Container Declarations
 
+### `rust_strict_conditionals`
+
+Opts a container into Rust generation that keeps flag-conditioned payload branches independent and enforces agreement between conditional flag bits and payload presence at construction. Where unambiguous, flag constructors synchronize conditional bits with payload presence; `try_new` validates raw bits. Containers without this tag retain existing generated Rust APIs.
+
+Allowed values are `true` or `false`.
+
+For example:
+
+```rust,ignore
+struct S {
+    Flags flags;
+    if (flags & HAS_VALUE) {
+        u32 value;
+    } else {
+        u64 other_value;
+    }
+} {
+    versions = "3.3.5";
+    rust_strict_conditionals = "true";
+}
+```
+
 ### Valid Values
 
 Specifies valid values for a integer type.

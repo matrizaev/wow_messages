@@ -8,8 +8,8 @@ use crate::parser::types::tags::{MemberTags, TagString};
 use crate::parser::types::version::{AllVersions, LoginVersion, WorldVersion};
 use crate::{
     ObjectTags, COMMENT, COMPRESSED, DISPLAY, FROM_DBC_FILE, LOGIN_VERSIONS, MAXIMUM_LENGTH,
-    NON_NETWORK_TYPE, PASTE_VERSIONS, RUST_BASE_TYPE, SKIP_STR, TEST_STR, UNIMPLEMENTED,
-    USED_IN_UPDATE_MASK, VALID_RANGE, VERSIONS, ZERO_IS_ALWAYS_VALID,
+    NON_NETWORK_TYPE, PASTE_VERSIONS, RUST_BASE_TYPE, RUST_STRICT_CONDITIONALS, SKIP_STR, TEST_STR,
+    UNIMPLEMENTED, USED_IN_UPDATE_MASK, VALID_RANGE, VERSIONS, ZERO_IS_ALWAYS_VALID,
 };
 
 #[derive(Debug, Eq, PartialEq, Clone, Default)]
@@ -29,6 +29,7 @@ pub(crate) struct ParsedTags {
     from_dbc_file: Option<String>,
     non_network_type: BoolTag,
     used_in_update_mask: BoolTag,
+    rust_strict_conditionals: BoolTag,
     valid_range: Option<(i128, i128)>,
     maximum_length: Option<i128>,
 }
@@ -64,7 +65,9 @@ impl ParsedTags {
         self.rust_base_ty.append(t.rust_base_ty);
         self.zero_is_always_valid.append(t.zero_is_always_valid);
         self.non_network_type.append(t.non_network_type);
-        self.used_in_update_mask.append(t.used_in_update_mask)
+        self.used_in_update_mask.append(t.used_in_update_mask);
+        self.rust_strict_conditionals
+            .append(t.rust_strict_conditionals);
     }
 
     pub(crate) fn add_descriptive_comments(&mut self, comments: &[&str]) {
@@ -130,6 +133,7 @@ impl ParsedTags {
             self.from_dbc_file,
             self.non_network_type.into_bool(),
             self.used_in_update_mask.into_bool(),
+            self.rust_strict_conditionals.into_bool(),
         )
     }
 
@@ -258,6 +262,8 @@ impl ParsedTags {
             self.non_network_type.insert(value);
         } else if key == USED_IN_UPDATE_MASK {
             self.used_in_update_mask.insert(value);
+        } else if key == RUST_STRICT_CONDITIONALS {
+            self.rust_strict_conditionals.insert(value);
         } else if key == VALID_RANGE {
             let values = value.split(' ').collect::<Vec<_>>();
             self.valid_range = Some((values[0].parse().unwrap(), values[1].parse().unwrap()));

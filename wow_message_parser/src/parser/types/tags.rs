@@ -24,6 +24,7 @@ pub(crate) struct ObjectTags {
     from_dbc_file: Option<String>,
     non_network_type: bool,
     used_in_update_mask: bool,
+    rust_strict_conditionals: bool,
 }
 
 impl ObjectTags {
@@ -39,6 +40,7 @@ impl ObjectTags {
         from_dbc_file: Option<String>,
         non_network_type: bool,
         used_in_update_mask: bool,
+        rust_strict_conditionals: bool,
     ) -> Self {
         let rust_versions = match &all_versions {
             AllVersions::Login(l) => Some(AllRustVersions::Login(l.clone())),
@@ -77,6 +79,7 @@ impl ObjectTags {
             from_dbc_file,
             non_network_type,
             used_in_update_mask,
+            rust_strict_conditionals,
         }
     }
 
@@ -95,7 +98,7 @@ impl ObjectTags {
         };
 
         Self::from_parsed(
-            v.0, None, false, false, false, false, false, false, None, false, false,
+            v.0, None, false, false, false, false, false, false, None, false, false, false,
         )
     }
 
@@ -115,6 +118,7 @@ impl ObjectTags {
             false,
             false,
             None,
+            false,
             false,
             false,
         )
@@ -276,6 +280,10 @@ impl ObjectTags {
 
     pub(crate) fn used_in_update_mask(&self) -> bool {
         self.used_in_update_mask
+    }
+
+    pub(crate) fn rust_strict_conditionals(&self) -> bool {
+        self.rust_strict_conditionals
     }
 }
 

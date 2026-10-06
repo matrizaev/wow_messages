@@ -280,7 +280,7 @@ impl crate::Message for SMSG_MONSTER_MOVE_TRANSPORT {
 impl crate::wrath::ServerMessage for SMSG_MONSTER_MOVE_TRANSPORT {}
 
 impl SMSG_MONSTER_MOVE_TRANSPORT {
-    pub(crate) const fn size(&self) -> usize {
+    pub(crate) fn size(&self) -> usize {
         crate::util::packed_guid_size(&self.guid) // guid: PackedGuid
         + crate::util::packed_guid_size(&self.transport) // transport: PackedGuid
         + 1 // transport_seat: i8
@@ -339,7 +339,7 @@ impl std::fmt::Display for SMSG_MONSTER_MOVE_TRANSPORT_MonsterMoveType {
 }
 
 impl SMSG_MONSTER_MOVE_TRANSPORT_MonsterMoveType {
-    pub(crate) const fn size(&self) -> usize {
+    pub(crate) fn size(&self) -> usize {
         match self {
             Self::Normal {
                 movement,

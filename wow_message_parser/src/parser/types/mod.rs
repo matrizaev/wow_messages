@@ -1,11 +1,12 @@
+use std::cmp::Ordering;
+use std::fmt::{Display, Formatter};
+
 use crate::error_printer::invalid_integer_type;
 use crate::file_info::FileInfo;
 use crate::parser::types::parsed::parsed_ty::ParsedType;
 use crate::parser::types::sizes::Sizes;
 use crate::parser::types::version::AllVersions;
 use crate::rust_printer::field_name_to_rust_name;
-use std::cmp::Ordering;
-use std::fmt::{Display, Formatter};
 
 pub(crate) mod array;
 pub(crate) mod container;

@@ -26,17 +26,22 @@ use crate::wrath::{
 ///     }
 /// }
 /// ```
-#[derive(Debug, Clone, PartialEq, PartialOrd, Default)]
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct MonsterMoveData {
-    pub spline_flags: MonsterMoveData_SplineFlag,
-    pub duration: u32,
-    pub splines: Vec<Vector3d>,
+    spline_flags: MonsterMoveData_SplineFlag,
+    duration: u32,
+    full_splines: Option<Vec<Vector3d>>,
+    splines: Option<Vec<Vector3d>>,
 }
 
 impl MonsterMoveData {
     pub(crate) fn write_into_vec(&self, mut w: impl Write) -> Result<(), std::io::Error> {
         // spline_flags: SplineFlag
         w.write_all(&(self.spline_flags.as_int().to_le_bytes()))?;
+
+        if (SplineFlag::new(self.spline_flags.as_int()).is_animation()) != (self.spline_flags.animation.is_some()) {
+            return Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, "conditional fields do not match flag condition"));
+        }
 
         if let Some(if_statement) = &self.spline_flags.animation {
             // animation_id: u8
@@ -50,6 +55,10 @@ impl MonsterMoveData {
         // duration: u32
         w.write_all(&self.duration.to_le_bytes())?;
 
+        if (SplineFlag::new(self.spline_flags.as_int()).is_parabolic()) != (self.spline_flags.parabolic.is_some()) {
+            return Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, "conditional fields do not match flag condition"));
+        }
+
         if let Some(if_statement) = &self.spline_flags.parabolic {
             // vertical_acceleration: f32
             w.write_all(&if_statement.vertical_acceleration.to_le_bytes())?;
@@ -59,8 +68,20 @@ impl MonsterMoveData {
 
         }
 
-        crate::util::write_wrath_monster_move_spline(self.splines.as_slice(), self.spline_flags.get_flying() || self.spline_flags.get_catmullrom(), &mut w)?;
+        if !(if self.spline_flags.get_flying() || self.spline_flags.get_catmullrom() { self.full_splines.is_some() && self.splines.is_none() } else { self.full_splines.is_none() && self.splines.is_some() }) {
+            return Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, "conditional fields do not match flag condition"));
+        }
 
+        if let Some(full_splines) = &self.full_splines {
+            // full_splines: FullMonsterMoveSpline
+            crate::util::write_wrath_monster_move_spline(full_splines.as_slice(), true, &mut w)?;
+
+        }
+        if let Some(splines) = &self.splines {
+            // splines: MonsterMoveSplines
+            crate::util::write_wrath_monster_move_spline(splines.as_slice(), false, &mut w)?;
+
+        }
         Ok(())
     }
 }
@@ -105,7 +126,18 @@ impl MonsterMoveData {
             None
         };
 
-        let splines = crate::util::read_wrath_monster_move_spline(&mut r, spline_flags.is_flying() || spline_flags.is_catmullrom())?;
+        let (full_splines, splines,) = if spline_flags.is_flying() || spline_flags.is_catmullrom() {
+            // full_splines: FullMonsterMoveSpline
+            let full_splines = crate::util::read_wrath_monster_move_spline(&mut r, true)?;
+
+            (Some(full_splines), None,)
+        }
+        else {
+            // splines: MonsterMoveSplines
+            let splines = crate::util::read_wrath_monster_move_spline(&mut r, false)?;
+
+            (None, Some(splines),)
+        };
 
         let spline_flags = MonsterMoveData_SplineFlag {
             inner: spline_flags.as_int(),
@@ -116,6 +148,7 @@ impl MonsterMoveData {
         Ok(Self {
             spline_flags,
             duration,
+            full_splines,
             splines,
         })
     }
@@ -123,10 +156,11 @@ impl MonsterMoveData {
 }
 
 impl MonsterMoveData {
-    pub(crate) const fn size(&self) -> usize {
+    pub(crate) fn size(&self) -> usize {
         self.spline_flags.size() // spline_flags: MonsterMoveData_SplineFlag
         + 4 // duration: u32
-        + crate::util::wrath_monster_move_spline_size(self.splines.as_slice(), self.spline_flags.get_flying() || self.spline_flags.get_catmullrom()) // splines: MonsterMoveSplines
+        + self.full_splines.as_ref().map_or(0, |value| crate::util::wrath_monster_move_spline_size(value.as_slice(), true)) // full_splines: FullMonsterMoveSpline
+        + self.splines.as_ref().map_or(0, |value| crate::util::wrath_monster_move_spline_size(value.as_slice(), false)) // splines: MonsterMoveSplines
     }
 }
 
@@ -138,12 +172,32 @@ pub struct MonsterMoveData_SplineFlag {
 }
 
 impl MonsterMoveData_SplineFlag {
+    /// Synchronizes conditional flag bits with payload presence.
     pub const fn new(inner: u32, parabolic: Option<MonsterMoveData_SplineFlag_Parabolic>,animation: Option<MonsterMoveData_SplineFlag_Animation>,) -> Self {
+        let mut inner = inner;
+        inner = if parabolic.is_some() { inner | SplineFlag::PARABOLIC } else { inner & !SplineFlag::PARABOLIC };
+        inner = if animation.is_some() { inner | SplineFlag::ANIMATION } else { inner & !SplineFlag::ANIMATION };
         Self {
             inner,
-            parabolic, 
-            animation, 
+            parabolic,
+            animation,
         }
+    }
+
+    /// Constructs a flag value only when conditional payloads match raw flag bits.
+    pub fn try_new(inner: u32, parabolic: Option<MonsterMoveData_SplineFlag_Parabolic>,animation: Option<MonsterMoveData_SplineFlag_Animation>,) -> Result<Self, std::io::Error> {
+        let flags = SplineFlag::new(inner);
+        if flags.is_parabolic() != parabolic.is_some() {
+            return Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, "conditional fields do not match flag condition"));
+        }
+        if flags.is_animation() != animation.is_some() {
+            return Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, "conditional fields do not match flag condition"));
+        }
+        Ok(Self {
+            inner,
+            parabolic,
+            animation,
+        })
     }
 
     pub const fn empty() -> Self {
@@ -180,7 +234,7 @@ impl MonsterMoveData_SplineFlag {
 
     #[allow(clippy::missing_const_for_fn)] // false positive
     pub fn clear_done(mut self) -> Self {
-        self.inner &= SplineFlag::DONE.reverse_bits();
+        self.inner &= !SplineFlag::DONE;
         self
     }
 
@@ -204,7 +258,7 @@ impl MonsterMoveData_SplineFlag {
 
     #[allow(clippy::missing_const_for_fn)] // false positive
     pub fn clear_falling(mut self) -> Self {
-        self.inner &= SplineFlag::FALLING.reverse_bits();
+        self.inner &= !SplineFlag::FALLING;
         self
     }
 
@@ -228,7 +282,7 @@ impl MonsterMoveData_SplineFlag {
 
     #[allow(clippy::missing_const_for_fn)] // false positive
     pub fn clear_no_spline(mut self) -> Self {
-        self.inner &= SplineFlag::NO_SPLINE.reverse_bits();
+        self.inner &= !SplineFlag::NO_SPLINE;
         self
     }
 
@@ -253,7 +307,7 @@ impl MonsterMoveData_SplineFlag {
 
     #[allow(clippy::missing_const_for_fn)] // false positive
     pub fn clear_parabolic(mut self) -> Self {
-        self.inner &= SplineFlag::PARABOLIC.reverse_bits();
+        self.inner &= !SplineFlag::PARABOLIC;
         self.parabolic = None;
         self
     }
@@ -278,7 +332,7 @@ impl MonsterMoveData_SplineFlag {
 
     #[allow(clippy::missing_const_for_fn)] // false positive
     pub fn clear_walk_mode(mut self) -> Self {
-        self.inner &= SplineFlag::WALK_MODE.reverse_bits();
+        self.inner &= !SplineFlag::WALK_MODE;
         self
     }
 
@@ -302,7 +356,7 @@ impl MonsterMoveData_SplineFlag {
 
     #[allow(clippy::missing_const_for_fn)] // false positive
     pub fn clear_flying(mut self) -> Self {
-        self.inner &= SplineFlag::FLYING.reverse_bits();
+        self.inner &= !SplineFlag::FLYING;
         self
     }
 
@@ -326,7 +380,7 @@ impl MonsterMoveData_SplineFlag {
 
     #[allow(clippy::missing_const_for_fn)] // false positive
     pub fn clear_orientation_fixed(mut self) -> Self {
-        self.inner &= SplineFlag::ORIENTATION_FIXED.reverse_bits();
+        self.inner &= !SplineFlag::ORIENTATION_FIXED;
         self
     }
 
@@ -350,7 +404,7 @@ impl MonsterMoveData_SplineFlag {
 
     #[allow(clippy::missing_const_for_fn)] // false positive
     pub fn clear_final_point(mut self) -> Self {
-        self.inner &= SplineFlag::FINAL_POINT.reverse_bits();
+        self.inner &= !SplineFlag::FINAL_POINT;
         self
     }
 
@@ -374,7 +428,7 @@ impl MonsterMoveData_SplineFlag {
 
     #[allow(clippy::missing_const_for_fn)] // false positive
     pub fn clear_final_target(mut self) -> Self {
-        self.inner &= SplineFlag::FINAL_TARGET.reverse_bits();
+        self.inner &= !SplineFlag::FINAL_TARGET;
         self
     }
 
@@ -398,7 +452,7 @@ impl MonsterMoveData_SplineFlag {
 
     #[allow(clippy::missing_const_for_fn)] // false positive
     pub fn clear_final_angle(mut self) -> Self {
-        self.inner &= SplineFlag::FINAL_ANGLE.reverse_bits();
+        self.inner &= !SplineFlag::FINAL_ANGLE;
         self
     }
 
@@ -422,7 +476,7 @@ impl MonsterMoveData_SplineFlag {
 
     #[allow(clippy::missing_const_for_fn)] // false positive
     pub fn clear_catmullrom(mut self) -> Self {
-        self.inner &= SplineFlag::CATMULLROM.reverse_bits();
+        self.inner &= !SplineFlag::CATMULLROM;
         self
     }
 
@@ -446,7 +500,7 @@ impl MonsterMoveData_SplineFlag {
 
     #[allow(clippy::missing_const_for_fn)] // false positive
     pub fn clear_cyclic(mut self) -> Self {
-        self.inner &= SplineFlag::CYCLIC.reverse_bits();
+        self.inner &= !SplineFlag::CYCLIC;
         self
     }
 
@@ -470,7 +524,7 @@ impl MonsterMoveData_SplineFlag {
 
     #[allow(clippy::missing_const_for_fn)] // false positive
     pub fn clear_enter_cycle(mut self) -> Self {
-        self.inner &= SplineFlag::ENTER_CYCLE.reverse_bits();
+        self.inner &= !SplineFlag::ENTER_CYCLE;
         self
     }
 
@@ -495,7 +549,7 @@ impl MonsterMoveData_SplineFlag {
 
     #[allow(clippy::missing_const_for_fn)] // false positive
     pub fn clear_animation(mut self) -> Self {
-        self.inner &= SplineFlag::ANIMATION.reverse_bits();
+        self.inner &= !SplineFlag::ANIMATION;
         self.animation = None;
         self
     }
@@ -520,7 +574,7 @@ impl MonsterMoveData_SplineFlag {
 
     #[allow(clippy::missing_const_for_fn)] // false positive
     pub fn clear_frozen(mut self) -> Self {
-        self.inner &= SplineFlag::FROZEN.reverse_bits();
+        self.inner &= !SplineFlag::FROZEN;
         self
     }
 
@@ -544,7 +598,7 @@ impl MonsterMoveData_SplineFlag {
 
     #[allow(clippy::missing_const_for_fn)] // false positive
     pub fn clear_transport_enter(mut self) -> Self {
-        self.inner &= SplineFlag::TRANSPORT_ENTER.reverse_bits();
+        self.inner &= !SplineFlag::TRANSPORT_ENTER;
         self
     }
 
@@ -568,7 +622,7 @@ impl MonsterMoveData_SplineFlag {
 
     #[allow(clippy::missing_const_for_fn)] // false positive
     pub fn clear_transport_exit(mut self) -> Self {
-        self.inner &= SplineFlag::TRANSPORT_EXIT.reverse_bits();
+        self.inner &= !SplineFlag::TRANSPORT_EXIT;
         self
     }
 
@@ -592,7 +646,7 @@ impl MonsterMoveData_SplineFlag {
 
     #[allow(clippy::missing_const_for_fn)] // false positive
     pub fn clear_unknown7(mut self) -> Self {
-        self.inner &= SplineFlag::UNKNOWN7.reverse_bits();
+        self.inner &= !SplineFlag::UNKNOWN7;
         self
     }
 
@@ -616,7 +670,7 @@ impl MonsterMoveData_SplineFlag {
 
     #[allow(clippy::missing_const_for_fn)] // false positive
     pub fn clear_unknown8(mut self) -> Self {
-        self.inner &= SplineFlag::UNKNOWN8.reverse_bits();
+        self.inner &= !SplineFlag::UNKNOWN8;
         self
     }
 
@@ -640,7 +694,7 @@ impl MonsterMoveData_SplineFlag {
 
     #[allow(clippy::missing_const_for_fn)] // false positive
     pub fn clear_orientation_inversed(mut self) -> Self {
-        self.inner &= SplineFlag::ORIENTATION_INVERSED.reverse_bits();
+        self.inner &= !SplineFlag::ORIENTATION_INVERSED;
         self
     }
 
@@ -664,7 +718,7 @@ impl MonsterMoveData_SplineFlag {
 
     #[allow(clippy::missing_const_for_fn)] // false positive
     pub fn clear_unknown10(mut self) -> Self {
-        self.inner &= SplineFlag::UNKNOWN10.reverse_bits();
+        self.inner &= !SplineFlag::UNKNOWN10;
         self
     }
 
@@ -688,7 +742,7 @@ impl MonsterMoveData_SplineFlag {
 
     #[allow(clippy::missing_const_for_fn)] // false positive
     pub fn clear_unknown11(mut self) -> Self {
-        self.inner &= SplineFlag::UNKNOWN11.reverse_bits();
+        self.inner &= !SplineFlag::UNKNOWN11;
         self
     }
 
@@ -712,7 +766,7 @@ impl MonsterMoveData_SplineFlag {
 
     #[allow(clippy::missing_const_for_fn)] // false positive
     pub fn clear_unknown12(mut self) -> Self {
-        self.inner &= SplineFlag::UNKNOWN12.reverse_bits();
+        self.inner &= !SplineFlag::UNKNOWN12;
         self
     }
 
@@ -736,7 +790,7 @@ impl MonsterMoveData_SplineFlag {
 
     #[allow(clippy::missing_const_for_fn)] // false positive
     pub fn clear_unknown13(mut self) -> Self {
-        self.inner &= SplineFlag::UNKNOWN13.reverse_bits();
+        self.inner &= !SplineFlag::UNKNOWN13;
         self
     }
 
@@ -775,5 +829,47 @@ pub struct MonsterMoveData_SplineFlag_Parabolic {
 pub struct MonsterMoveData_SplineFlag_Animation {
     pub animation_id: u8,
     pub animation_start_time: u32,
+}
+
+impl MonsterMoveData {
+    pub fn try_new(spline_flags: MonsterMoveData_SplineFlag, duration: u32, full_splines: Option<Vec<Vector3d>>, splines: Option<Vec<Vector3d>>) -> Result<Self, std::io::Error> {
+        if !(if spline_flags.get_flying() || spline_flags.get_catmullrom() { full_splines.is_some() && splines.is_none() } else { full_splines.is_none() && splines.is_some() }) {
+            return Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, "conditional fields do not match flag condition"));
+        }
+        Ok(Self {
+            spline_flags,
+            duration,
+            full_splines,
+            splines,
+        })
+    }
+
+    pub const fn spline_flags(&self) -> &MonsterMoveData_SplineFlag {
+        &self.spline_flags
+    }
+
+    pub const fn duration(&self) -> &u32 {
+        &self.duration
+    }
+
+    pub const fn full_splines(&self) -> &Option<Vec<Vector3d>> {
+        &self.full_splines
+    }
+
+    pub const fn splines(&self) -> &Option<Vec<Vector3d>> {
+        &self.splines
+    }
+
+}
+
+impl Default for MonsterMoveData {
+    fn default() -> Self {
+        Self {
+            spline_flags: Default::default(),
+            duration: Default::default(),
+            full_splines: None,
+            splines: Some(Default::default()),
+        }
+    }
 }
 

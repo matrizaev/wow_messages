@@ -24,10 +24,14 @@
 
 use std::fmt::Write;
 use std::path::Path;
-use walkdir::WalkDir;
 
+use parser::types::container::{Container, ContainerType};
 use parser::types::objects::Objects;
+use parser::types::parsed::parsed_object::ParsedObjects;
+use parser::types::tags::ObjectTags;
+use path_utils::get_world_version_file_path;
 use rust_printer::print_struct;
+use walkdir::WalkDir;
 
 use crate::doc_printer::print_docs;
 use crate::ember_printer::write_ember_schema;
@@ -47,10 +51,6 @@ use crate::rust_printer::{
     print_opcode_to_name, print_read_write_base_structs, print_update_mask, print_world_opcodes,
     DefinerType,
 };
-use parser::types::container::{Container, ContainerType};
-use parser::types::parsed::parsed_object::ParsedObjects;
-use parser::types::tags::ObjectTags;
-use path_utils::get_world_version_file_path;
 
 mod base_printer;
 mod doc_printer;
@@ -84,6 +84,7 @@ const ZERO_IS_ALWAYS_VALID: &str = "zero_is_always_valid";
 const FROM_DBC_FILE: &str = "from_dbc_file";
 const NON_NETWORK_TYPE: &str = "non_network_type";
 const USED_IN_UPDATE_MASK: &str = "used_in_update_mask";
+const RUST_STRICT_CONDITIONALS: &str = "rust_strict_conditionals";
 const VALID_RANGE: &str = "valid_range";
 const MAXIMUM_LENGTH: &str = "maximum_length";
 const UNIMPLEMENTED: &str = "unimplemented";

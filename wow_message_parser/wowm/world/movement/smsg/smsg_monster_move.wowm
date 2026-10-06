@@ -45,7 +45,7 @@ struct MonsterMoveData {
         MonsterMoveSplines splines;
     }
 } {
-    versions = "3.3.5";
+    versions = "3.3.5"; rust_strict_conditionals = "true";
 }
 
 smsg SMSG_MONSTER_MOVE = 0x00DD {

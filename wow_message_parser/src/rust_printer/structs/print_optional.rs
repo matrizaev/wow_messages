@@ -7,7 +7,7 @@ pub(crate) fn print_optional(s: &mut Writer, optional: &RustOptional) {
 }
 
 fn print_declaration(s: &mut Writer, optional: &RustOptional) {
-    print_derives(s, &optional.all_members(), false);
+    print_derives(s, &optional.all_members(), false, true);
     s.new_struct(optional.ty(), |s| {
         for m in optional.members_in_struct() {
             s.wln(format!("pub {name}: {ty},", name = m.name(), ty = m.ty(),));

@@ -9,8 +9,9 @@ use crate::parser::types::IntegerType;
 use crate::rust_printer::base_structs::base_struct_read_name;
 use crate::rust_printer::get_optional_type_name;
 use crate::rust_printer::rust_view::rust_definer::RustDefiner;
-use crate::rust_printer::rust_view::rust_type::{
-    MonsterMoveSplineEncoding, MonsterMoveSplineLayout, RustType,
+use crate::rust_printer::rust_view::rust_type::RustType;
+use crate::rust_printer::rust_view::{
+    flag_condition_expression, uses_separate_flag_if_else_fields,
 };
 use crate::rust_printer::structs::print_common_impls::print_size::print_size_of_ty_rust_view;
 use crate::rust_printer::structs::uses_wrath_monster_move_spline_encoding;
@@ -574,6 +575,84 @@ fn print_read_definition(
     s.newline();
 }
 
+fn print_read_conditional_flag_branch(
+    s: &mut Writer,
+    e: &Container,
+    o: &Objects,
+    members: &[StructMember],
+    all_names: &[String],
+    prefix: &str,
+    postfix: &str,
+) {
+    let branch_names = members
+        .iter()
+        .filter_map(|member| match member {
+            StructMember::Definition(definition) => Some(definition.name()),
+            StructMember::IfStatement(_) | StructMember::OptionalStatement(_) => None,
+        })
+        .collect::<Vec<_>>();
+
+    for member in members {
+        print_read_field(s, e, o, member, prefix, postfix, "let ");
+    }
+
+    let values = all_names
+        .iter()
+        .map(|name| {
+            if branch_names.contains(&name.as_str()) {
+                format!("Some({name})")
+            } else {
+                "None".to_string()
+            }
+        })
+        .collect::<Vec<_>>()
+        .join(", ");
+    s.wln(format!("({values},)"));
+}
+
+fn print_read_conditional_flag_if_else(
+    s: &mut Writer,
+    e: &Container,
+    o: &Objects,
+    statement: &IfStatement,
+    prefix: &str,
+    postfix: &str,
+) {
+    let all_names = statement
+        .all_definitions()
+        .iter()
+        .map(|definition| definition.name().to_string())
+        .collect::<Vec<_>>();
+    let tuple_names = format!("({},)", all_names.join(", "));
+    let condition =
+        flag_condition_expression(statement.variable_name(), statement.equation(), "is_");
+
+    s.open_curly(format!("let {tuple_names} = if {condition}"));
+    print_read_conditional_flag_branch(s, e, o, statement.members(), &all_names, prefix, postfix);
+    s.closing_curly();
+
+    for else_if in statement.else_ifs() {
+        let condition =
+            flag_condition_expression(statement.variable_name(), else_if.equation(), "is_");
+        s.open_curly(format!("else if {condition}"));
+        print_read_conditional_flag_branch(s, e, o, else_if.members(), &all_names, prefix, postfix);
+        s.closing_curly();
+    }
+
+    s.open_curly("else");
+    print_read_conditional_flag_branch(
+        s,
+        e,
+        o,
+        statement.else_members(),
+        &all_names,
+        prefix,
+        postfix,
+    );
+    s.closing_curly_with(";");
+    s.newline();
+}
+
 fn print_read_if_statement_flag(
     s: &mut Writer,
     e: &Container,
@@ -582,22 +661,9 @@ fn print_read_if_statement_flag(
     prefix: &str,
     postfix: &str,
 ) {
-    if e.tags().contains_wrath() {
-        match MonsterMoveSplineLayout::from_if_statement(statement) {
-            Ok(Some(layout)) => {
-                let encoding = MonsterMoveSplineEncoding::from_layout(&layout);
-                if let Some(condition) = encoding.condition_expression("", "is_") {
-                    s.wln(format!(
-                        "let {name} = crate::util::read_wrath_monster_move_spline(&mut r, {condition})?;",
-                        name = layout.linear().name(),
-                    ));
-                    s.newline();
-                    return;
-                }
-            }
-            Ok(None) => {}
-            Err(_) => crate::error_printer::unsupported_wrath_spline_layout(e.file_info()),
-        }
+    if e.tags().rust_strict_conditionals() && uses_separate_flag_if_else_fields(statement) {
+        print_read_conditional_flag_if_else(s, e, o, statement, prefix, postfix);
+        return;
     }
 
     s.open_curly(format!(

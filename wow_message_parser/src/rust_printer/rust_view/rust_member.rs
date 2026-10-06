@@ -12,6 +12,7 @@ pub(crate) struct RustMember {
     pub original_ty: String,
 
     pub in_rust_type: bool,
+    optional: bool,
 
     tags: MemberTags,
 }
@@ -25,6 +26,12 @@ impl RustMember {
     }
     pub(crate) fn tags(&self) -> &MemberTags {
         &self.tags
+    }
+    pub(crate) fn is_optional(&self) -> bool {
+        self.optional
+    }
+    pub(crate) fn set_optional(&mut self) {
+        self.optional = true;
     }
     pub(crate) fn all_members(&self) -> Vec<&RustMember> {
         let mut v = self.all_members_without_self();
@@ -292,6 +299,7 @@ impl RustMember {
             ty,
             original_ty,
             in_rust_type,
+            optional: false,
             tags,
         }
     }

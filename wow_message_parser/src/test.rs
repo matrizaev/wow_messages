@@ -7,7 +7,7 @@ use crate::error_printer::{
     DUPLICATE_FIELD_NAMES, ENUM_HAS_BITWISE_AND, FLAG_HAS_EQUALS, INCORRECT_OPCODE_FOR_MESSAGE,
     INVALID_DEFINER_VALUE, INVALID_INTEGER_TYPE, INVALID_SELF_SIZE, MESSAGE_NOT_IN_INDEX,
     MISSING_ENUMERATOR, NON_MATCHING_IF_VARIABLES, NO_VERSIONS, OPCODE_HAS_INCORRECT_NAME,
-    OVERLAPPING_VERSIONS, RECURSIVE_TYPE, UNSUPPORTED_UPCAST, UNSUPPORTED_WRATH_SPLINE_LAYOUT,
+    OVERLAPPING_VERSIONS, RECURSIVE_TYPE, UNSUPPORTED_UPCAST,
 };
 use crate::file_utils::write_string_to_file;
 use crate::parser::parse_file;
@@ -60,6 +60,44 @@ fn check(s: &Writer, name: &str) {
 
 fn overwrite(s: &Writer, name: &str) {
     write_string_to_file(s.inner(), Path::new(&format!("tests/{name}.txt")));
+}
+
+#[test]
+fn rust_strict_conditionals_is_opt_in() {
+    let source = crate::path_utils::workspace_directory()
+        .join("wow_message_parser/wowm/world/movement/smsg/smsg_monster_move.wowm");
+    let parsed = crate::parser::parse_contents(
+        r#"
+struct LegacyConditionals {
+    u8 value;
+} {
+    versions = "3.3.5";
+}
+
+struct StrictConditionals {
+    u8 value;
+} {
+    versions = "3.3.5";
+    rust_strict_conditionals = "true";
+}
+"#,
+        &source,
+    );
+    let objects = parsed.into_objects();
+
+    let legacy = objects
+        .structs()
+        .iter()
+        .find(|structure| structure.name() == "LegacyConditionals")
+        .unwrap();
+    let strict = objects
+        .structs()
+        .iter()
+        .find(|structure| structure.name() == "StrictConditionals")
+        .unwrap();
+
+    assert!(!legacy.tags().rust_strict_conditionals());
+    assert!(strict.tags().rust_strict_conditionals());
 }
 
 #[test]
@@ -488,26 +526,6 @@ fn invalid_integer_type() {
             print_message_stats(&o);
         },
         INVALID_INTEGER_TYPE,
-    );
-}
-
-#[test]
-fn unsupported_wrath_spline_layout() {
-    should_panic(
-        || {
-            let _ = must_err_load("unsupported_wrath_spline_layout.wowm");
-        },
-        UNSUPPORTED_WRATH_SPLINE_LAYOUT,
-    );
-}
-
-#[test]
-fn wrong_wrath_spline_discriminator() {
-    should_panic(
-        || {
-            let _ = must_err_load("wrong_wrath_spline_discriminator.wowm");
-        },
-        UNSUPPORTED_WRATH_SPLINE_LAYOUT,
     );
 }
 

@@ -1,8 +1,10 @@
+use std::collections::HashSet;
+
 use rust_enumerator::RustEnumerator;
 use rust_member::RustMember;
 use rust_object::RustObject;
 use rust_optional::RustOptional;
-use rust_type::{MonsterMoveSplineEncoding, MonsterMoveSplineLayout, RustType};
+use rust_type::{MonsterMoveSplineEncoding, RustType};
 
 use crate::parser::types::definer::Definer;
 use crate::parser::types::if_statement::{Equation, IfStatement};
@@ -22,6 +24,81 @@ pub(crate) mod rust_member;
 pub(crate) mod rust_object;
 pub(crate) mod rust_optional;
 pub(crate) mod rust_type;
+
+pub(crate) fn flag_condition_expression(
+    variable: &str,
+    equation: &Equation,
+    accessor: &str,
+) -> String {
+    match equation {
+        Equation::BitwiseAnd { values } | Equation::Equals { values } => values
+            .iter()
+            .map(|value| format!("{variable}.{accessor}{}()", value.to_lowercase()))
+            .collect::<Vec<_>>()
+            .join(" || "),
+        Equation::NotEquals { value } => {
+            format!("!{variable}.{accessor}{}()", value.to_lowercase())
+        }
+    }
+}
+
+pub(crate) fn uses_separate_flag_if_else_fields(statement: &IfStatement) -> bool {
+    if statement.definer_type() != DefinerType::Flag
+        || statement.else_members().is_empty()
+        || !matches!(statement.equation(), Equation::BitwiseAnd { .. })
+        || statement
+            .else_ifs()
+            .iter()
+            .any(|else_if| !matches!(else_if.equation(), Equation::BitwiseAnd { .. }))
+    {
+        return false;
+    }
+
+    fn add_names(members: &[StructMember], names: &mut HashSet<String>) -> bool {
+        members.iter().all(|member| {
+            let StructMember::Definition(definition) = member else {
+                return false;
+            };
+            names.insert(definition.name().to_string())
+        })
+    }
+
+    let mut names = HashSet::new();
+    let valid = add_names(statement.members(), &mut names)
+        && statement
+            .else_ifs()
+            .iter()
+            .all(|else_if| add_names(else_if.members(), &mut names))
+        && add_names(statement.else_members(), &mut names);
+
+    valid && !names.is_empty()
+}
+
+fn create_conditional_flag_members(
+    statement: &IfStatement,
+    e: &ParsedContainer,
+    containers: &[ParsedContainer],
+    definers: &[Definer],
+    current_scope: &mut Vec<RustMember>,
+) {
+    let branches = std::iter::once(statement.members())
+        .chain(statement.else_ifs().iter().map(|else_if| else_if.members()))
+        .chain(std::iter::once(statement.else_members()));
+
+    for definition in branches
+        .flat_map(|members| members.iter())
+        .filter_map(|member| {
+            let StructMember::Definition(definition) = member else {
+                return None;
+            };
+            Some(definition)
+        })
+    {
+        let mut member = create_struct_member_definition(e, containers, definers, definition);
+        member.set_optional();
+        current_scope.push(member);
+    }
+}
 
 fn create_else_if_flag(
     statement: &IfStatement,
@@ -278,42 +355,20 @@ pub(crate) fn create_struct_member(
             current_scope.push(create_struct_member_definition(e, containers, definers, d));
         }
         StructMember::IfStatement(statement) => {
-            if tags.contains_wrath() {
-                match MonsterMoveSplineLayout::from_if_statement(statement) {
-                    Ok(Some(layout)) => {
-                        let mut member = create_struct_member_definition(
-                            e,
-                            containers,
-                            definers,
-                            layout.linear(),
-                        );
-                        member.ty = RustType::MonsterMoveSpline(
-                            MonsterMoveSplineEncoding::from_layout(&layout),
-                        );
-                        current_scope.push(member);
-                    }
-                    Ok(None) => create_if_statement(
-                        statement,
-                        struct_ty_name,
-                        tags,
-                        containers,
-                        definers,
-                        e,
-                        current_scope,
-                    ),
-                    Err(_) => crate::error_printer::unsupported_wrath_spline_layout(&e.file_info),
-                }
-            } else {
-                create_if_statement(
-                    statement,
-                    struct_ty_name,
-                    tags,
-                    containers,
-                    definers,
-                    e,
-                    current_scope,
-                );
+            if e.tags().rust_strict_conditionals() && uses_separate_flag_if_else_fields(statement) {
+                create_conditional_flag_members(statement, e, containers, definers, current_scope);
+                return;
             }
+
+            create_if_statement(
+                statement,
+                struct_ty_name,
+                tags,
+                containers,
+                definers,
+                e,
+                current_scope,
+            );
         }
         StructMember::OptionalStatement(option) => {
             let mut members = Vec::new();
@@ -437,7 +492,7 @@ fn create_struct_member_definition(
         } else {
             MonsterMoveSplineEncoding::Legacy
         }),
-        Type::FullMonsterMoveSpline => RustType::MonsterMoveSpline(MonsterMoveSplineEncoding::Full),
+        Type::FullMonsterMoveSpline => RustType::FullMonsterMoveSpline,
         Type::EnchantMask => RustType::EnchantMask,
         Type::InspectTalentGearMask => RustType::InspectTalentGearMask,
         Type::Gold => RustType::Gold,

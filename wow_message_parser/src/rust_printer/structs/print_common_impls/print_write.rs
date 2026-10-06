@@ -6,8 +6,8 @@ use crate::parser::types::struct_member::{StructMember, StructMemberDefinition};
 use crate::parser::types::ty::Type;
 use crate::parser::types::{ContainerValue, IntegerType};
 use crate::rust_printer::base_structs::base_struct_write_name;
-use crate::rust_printer::rust_view::rust_type::{
-    MonsterMoveSplineEncoding, MonsterMoveSplineLayout,
+use crate::rust_printer::rust_view::{
+    flag_condition_expression, uses_separate_flag_if_else_fields,
 };
 use crate::rust_printer::writer::Writer;
 use crate::rust_printer::DefinerType;
@@ -355,6 +355,129 @@ pub(crate) fn print_write_definition(
     s.newline();
 }
 
+fn conditional_branch_presence(
+    members: &[StructMember],
+    all_names: &[String],
+    variable_prefix: &str,
+) -> String {
+    let branch_names = members
+        .iter()
+        .filter_map(|member| match member {
+            StructMember::Definition(definition) => Some(definition.name()),
+            StructMember::IfStatement(_) | StructMember::OptionalStatement(_) => None,
+        })
+        .collect::<Vec<_>>();
+
+    all_names
+        .iter()
+        .map(|name| {
+            let method = if branch_names.contains(&name.as_str()) {
+                "is_some"
+            } else {
+                "is_none"
+            };
+            let field = if variable_prefix.is_empty() {
+                format!("self.{name}")
+            } else {
+                format!("{variable_prefix}{name}")
+            };
+            format!("{field}.{method}()")
+        })
+        .collect::<Vec<_>>()
+        .join(" && ")
+}
+
+fn print_write_conditional_flag_branch(
+    s: &mut Writer,
+    e: &Container,
+    o: &Objects,
+    members: &[StructMember],
+    variable_prefix: &str,
+    prefix: &str,
+    postfix: &str,
+) {
+    for member in members {
+        let StructMember::Definition(definition) = member else {
+            continue;
+        };
+        let name = definition.name();
+        let field = if variable_prefix.is_empty() {
+            format!("self.{name}")
+        } else {
+            format!("{variable_prefix}{name}")
+        };
+        s.body(format!("if let Some({name}) = &{field}"), |s| {
+            print_write_field(s, e, o, member, "", prefix, postfix);
+        });
+    }
+}
+
+fn print_write_conditional_flag_if_else(
+    s: &mut Writer,
+    e: &Container,
+    o: &Objects,
+    variable_prefix: &str,
+    statement: &IfStatement,
+    prefix: &str,
+    postfix: &str,
+) {
+    let all_names = statement
+        .all_definitions()
+        .iter()
+        .map(|definition| definition.name().to_string())
+        .collect::<Vec<_>>();
+    let condition_variable = if variable_prefix.is_empty() {
+        format!("self.{}", statement.variable_name())
+    } else {
+        format!("{variable_prefix}{}", statement.variable_name())
+    };
+    let mut valid_fields =
+        conditional_branch_presence(statement.else_members(), &all_names, variable_prefix);
+
+    for else_if in statement.else_ifs().iter().rev() {
+        let condition = flag_condition_expression(&condition_variable, else_if.equation(), "get_");
+        let branch = conditional_branch_presence(else_if.members(), &all_names, variable_prefix);
+        valid_fields = format!("if {condition} {{ {branch} }} else {{ {valid_fields} }}");
+    }
+
+    let condition = flag_condition_expression(&condition_variable, statement.equation(), "get_");
+    let branch = conditional_branch_presence(statement.members(), &all_names, variable_prefix);
+    valid_fields = format!("if {condition} {{ {branch} }} else {{ {valid_fields} }}");
+    s.bodyn(format!("if !({valid_fields})"), |s| {
+        s.wln("return Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, \"conditional fields do not match flag condition\"));");
+    });
+
+    print_write_conditional_flag_branch(
+        s,
+        e,
+        o,
+        statement.members(),
+        variable_prefix,
+        prefix,
+        postfix,
+    );
+    for else_if in statement.else_ifs() {
+        print_write_conditional_flag_branch(
+            s,
+            e,
+            o,
+            else_if.members(),
+            variable_prefix,
+            prefix,
+            postfix,
+        );
+    }
+    print_write_conditional_flag_branch(
+        s,
+        e,
+        o,
+        statement.else_members(),
+        variable_prefix,
+        prefix,
+        postfix,
+    );
+}
+
 fn print_write_flag_if_statement(
     s: &mut Writer,
     e: &Container,
@@ -364,22 +487,34 @@ fn print_write_flag_if_statement(
     prefix: &str,
     postfix: &str,
 ) {
-    if e.tags().contains_wrath() {
-        match MonsterMoveSplineLayout::from_if_statement(statement) {
-            Ok(Some(layout)) => {
-                let encoding = MonsterMoveSplineEncoding::from_layout(&layout);
-                if let Some(condition) = encoding.condition_expression("self.", "get_") {
-                    s.wln(format!(
-                        "crate::util::write_wrath_monster_move_spline(self.{name}.as_slice(), {condition}, &mut w)?;",
-                        name = layout.linear().name(),
-                    ));
-                    s.newline();
-                    return;
-                }
-            }
-            Ok(None) => {}
-            Err(_) => crate::error_printer::unsupported_wrath_spline_layout(e.file_info()),
-        }
+    if e.tags().rust_strict_conditionals() && uses_separate_flag_if_else_fields(statement) {
+        print_write_conditional_flag_if_else(s, e, o, variable_prefix, statement, prefix, postfix);
+        return;
+    }
+
+    if e.tags().rust_strict_conditionals()
+        && statement.else_members().is_empty()
+        && statement.else_ifs().is_empty()
+    {
+        let flag_variable = format!("{variable_prefix}{}", statement.variable_name());
+        let rd = e
+            .rust_object()
+            .rust_definer_with_variable_name_and_enumerator(
+                statement.variable_name(),
+                &statement.flag_get_enumerator(),
+            );
+        let raw_flags = format!(
+            "{ty}::new({flag_variable}.as_int())",
+            ty = rd.original_ty_name()
+        );
+        let condition = flag_condition_expression(&raw_flags, statement.equation(), "is_");
+        let payload = format!(
+            "{flag_variable}.{}",
+            statement.flag_get_enumerator().to_lowercase()
+        );
+        s.bodyn(format!("if ({condition}) != ({payload}.is_some())"), |s| {
+            s.wln("return Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, \"conditional fields do not match flag condition\"));");
+        });
     }
 
     s.open_curly(format!(

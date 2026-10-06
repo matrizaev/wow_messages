@@ -1,7 +1,12 @@
 use crate::parser::types::array::ArraySize;
 use crate::parser::types::container::Container;
+use crate::parser::types::if_statement::IfStatement;
+use crate::parser::types::struct_member::StructMember;
 use crate::rust_printer::rust_view::rust_definer::RustDefiner;
 use crate::rust_printer::rust_view::rust_type::RustType;
+use crate::rust_printer::rust_view::{
+    flag_condition_expression, uses_separate_flag_if_else_fields,
+};
 use crate::rust_printer::structs::print_common_impls::print_size::{
     print_rust_members_sizes, variable_size,
 };
@@ -17,7 +22,7 @@ pub(crate) fn print_new_types(s: &mut Writer, e: &Container) {
                     matches!(
                         member.ty(),
                         RustType::MonsterMoveSpline(encoding) if encoding.is_wrath()
-                    )
+                    ) || matches!(member.ty(), RustType::FullMonsterMoveSpline)
                 });
                 let derive_default = contains_wrath_spline
                     && !rd.is_single_rust_definer()
@@ -44,7 +49,7 @@ pub(crate) fn print_new_types(s: &mut Writer, e: &Container) {
                 print_new_flag_declaration(s, &rd);
 
                 s.body(format!("impl {name}", name = rd.ty_name()), |s| {
-                    print_constructors_for_new_flag(s, &rd);
+                    print_constructors_for_new_flag(s, &rd, e.tags().rust_strict_conditionals());
                     print_flag_as_int(s, &rd);
                 });
                 print_size_for_new_flag(s, &rd);
@@ -53,6 +58,175 @@ pub(crate) fn print_new_types(s: &mut Writer, e: &Container) {
             }
         }
     }
+
+    if e.tags().rust_strict_conditionals() {
+        print_strict_container_api(s, e);
+    }
+}
+
+fn print_strict_container_api(s: &mut Writer, e: &Container) {
+    let members = e.rust_object().members_in_struct().collect::<Vec<_>>();
+    let optional = e.rust_object().optional();
+    let mut parameters = members
+        .iter()
+        .map(|member| {
+            let ty = if member.is_optional() {
+                format!("Option<{}>", member.ty())
+            } else {
+                member.ty().rust_str()
+            };
+            format!("{}: {ty}", member.name())
+        })
+        .collect::<Vec<_>>();
+    if let Some(optional) = optional {
+        parameters.push(format!("{}: Option<{}>", optional.name(), optional.ty()));
+    }
+
+    let mut conditionals = Vec::new();
+    collect_strict_if_else_members(e.members(), &mut conditionals);
+
+    s.bodyn(format!("impl {}", e.name()), |s| {
+        s.funcn_pub(
+            format!("try_new({})", parameters.join(", ")),
+            "Result<Self, std::io::Error>",
+            |s| {
+                for statement in &conditionals {
+                    let all_names = statement
+                        .all_definitions()
+                        .iter()
+                        .map(|definition| definition.name().to_string())
+                        .collect::<Vec<_>>();
+                    let mut valid = branch_presence(statement.else_members(), &all_names);
+                    for else_if in statement.else_ifs().iter().rev() {
+                        let branch = branch_presence(else_if.members(), &all_names);
+                        let condition = flag_condition_expression(
+                            else_if.variable_name(),
+                            else_if.equation(),
+                            "get_",
+                        );
+                        valid = format!("if {condition} {{ {branch} }} else {{ {valid} }}");
+                    }
+                    let branch = branch_presence(statement.members(), &all_names);
+                    let condition = flag_condition_expression(
+                        statement.variable_name(),
+                        statement.equation(),
+                        "get_",
+                    );
+                    valid = format!("if {condition} {{ {branch} }} else {{ {valid} }}");
+                    s.body(format!("if !({valid})"), |s| {
+                        s.wln("return Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, \"conditional fields do not match flag condition\"));");
+                    });
+                }
+
+                s.body_closing_with("Ok(Self", |s| {
+                    for member in &members {
+                        s.wln(format!("{},", member.name()));
+                    }
+                    if let Some(optional) = optional {
+                        s.wln(format!("{},", optional.name()));
+                    }
+                }, ")");
+            },
+        );
+
+        for member in &members {
+            let ty = if member.is_optional() {
+                format!("Option<{}>", member.ty())
+            } else {
+                member.ty().rust_str()
+            };
+            s.funcn_pub_const(
+                format!("{}(&self)", member.name()),
+                format!("&{ty}"),
+                |s| s.wln(format!("&self.{}", member.name())),
+            );
+        }
+        if let Some(optional) = optional {
+            s.funcn_pub_const(
+                format!("{}(&self)", optional.name()),
+                format!("&Option<{}>", optional.ty()),
+                |s| s.wln(format!("&self.{}", optional.name())),
+            );
+        }
+    });
+
+    s.bodyn(format!("impl Default for {}", e.name()), |s| {
+        s.body("fn default() -> Self", |s| {
+            let mut default_else_names = Vec::new();
+            for statement in &conditionals {
+                default_else_names.extend(statement.else_members().iter().filter_map(|member| {
+                    match member {
+                        StructMember::Definition(definition) => Some(definition.name().to_string()),
+                        StructMember::IfStatement(_) | StructMember::OptionalStatement(_) => None,
+                    }
+                }));
+            }
+            s.open_curly("Self");
+            for member in &members {
+                if member.is_optional() {
+                    let value = if default_else_names.contains(&member.name().to_string()) {
+                        "Some(Default::default())"
+                    } else {
+                        "None"
+                    };
+                    s.wln(format!("{}: {value},", member.name()));
+                } else {
+                    s.wln(format!("{}: Default::default(),", member.name()));
+                }
+            }
+            if let Some(optional) = optional {
+                s.wln(format!("{}: None,", optional.name()));
+            }
+            s.closing_curly();
+        });
+    });
+}
+
+fn collect_strict_if_else_members<'a>(
+    members: &'a [StructMember],
+    statements: &mut Vec<&'a IfStatement>,
+) {
+    for member in members {
+        match member {
+            StructMember::IfStatement(statement) => {
+                if uses_separate_flag_if_else_fields(statement) {
+                    statements.push(statement);
+                }
+                collect_strict_if_else_members(statement.members(), statements);
+                for else_if in statement.else_ifs() {
+                    collect_strict_if_else_members(else_if.members(), statements);
+                }
+                collect_strict_if_else_members(statement.else_members(), statements);
+            }
+            StructMember::OptionalStatement(optional) => {
+                collect_strict_if_else_members(optional.members(), statements);
+            }
+            StructMember::Definition(_) => {}
+        }
+    }
+}
+
+fn branch_presence(members: &[StructMember], all_names: &[String]) -> String {
+    let branch_names = members
+        .iter()
+        .filter_map(|member| match member {
+            StructMember::Definition(definition) => Some(definition.name()),
+            StructMember::IfStatement(_) | StructMember::OptionalStatement(_) => None,
+        })
+        .collect::<Vec<_>>();
+
+    all_names
+        .iter()
+        .map(|name| {
+            let method = if branch_names.contains(&name.as_str()) {
+                "is_some"
+            } else {
+                "is_none"
+            };
+            format!("{name}.{method}()")
+        })
+        .collect::<Vec<_>>()
+        .join(" && ")
 }
 
 fn print_flag_as_int(s: &mut Writer, rd: &RustDefiner) {
@@ -62,7 +236,7 @@ fn print_flag_as_int(s: &mut Writer, rd: &RustDefiner) {
 }
 
 fn print_new_flag_declaration(s: &mut Writer, rd: &RustDefiner) {
-    print_derives(s, &rd.all_members(), false);
+    print_derives(s, &rd.all_members(), false, true);
     s.new_flag(rd.ty_name(), rd.int_ty().rust_str(), |s| {
         for enumerator in rd.enumerators() {
             if !enumerator.should_not_be_in_flag_types() {
@@ -76,9 +250,18 @@ fn print_new_flag_declaration(s: &mut Writer, rd: &RustDefiner) {
     });
 }
 
-fn print_constructors_for_new_flag(s: &mut Writer, rd: &RustDefiner) {
+fn print_flag_constructor_fields(s: &mut Writer, rd: &RustDefiner) {
+    for enumerator in rd.enumerators() {
+        if !enumerator.should_not_be_in_flag_types() {
+            s.wln(format!("{},", enumerator.name().to_lowercase()));
+        }
+    }
+}
+
+fn print_constructors_for_new_flag(s: &mut Writer, rd: &RustDefiner, strict_conditionals: bool) {
     use std::fmt::Write;
 
+    let complex_enumerators = rd.complex_flag_enumerators();
     let mut function_name = format!("new(inner: {ty}, ", ty = rd.int_ty().rust_str());
 
     for enumerator in rd.enumerators() {
@@ -95,20 +278,61 @@ fn print_constructors_for_new_flag(s: &mut Writer, rd: &RustDefiner) {
 
     write!(function_name, ")").unwrap();
 
-    s.funcn_pub_const(function_name, "Self", |s| {
-        s.body("Self", |s| {
-            s.wln("inner,");
-
-            for enumerator in rd.enumerators() {
-                if !enumerator.should_not_be_in_flag_types() {
+    if !strict_conditionals || complex_enumerators.is_empty() {
+        s.funcn_pub_const(function_name.clone(), "Self", |s| {
+            s.body("Self", |s| {
+                s.wln("inner,");
+                for enumerator in rd.enumerators() {
+                    if !enumerator.should_not_be_in_flag_types() {
+                        s.wln(format!(
+                            "{variable_name}, ",
+                            variable_name = enumerator.name().to_lowercase(),
+                        ));
+                    }
+                }
+            });
+        });
+    } else {
+        let has_zero_condition = complex_enumerators
+            .iter()
+            .any(|enumerator| enumerator.value().int() == 0);
+        if !has_zero_condition {
+            s.wln("/// Synchronizes conditional flag bits with payload presence.");
+            s.funcn_pub_const(function_name.clone(), "Self", |s| {
+                s.wln("let mut inner = inner;");
+                for enumerator in &complex_enumerators {
+                    let name = enumerator.name().to_lowercase();
                     s.wln(format!(
-                        "{variable_name}, ",
-                        variable_name = enumerator.name().to_lowercase(),
+                        "inner = if {name}.is_some() {{ inner | {ty}::{flag} }} else {{ inner & !{ty}::{flag} }};",
+                        ty = rd.original_ty_name(),
+                        flag = enumerator.name(),
                     ));
                 }
+                s.body("Self", |s| {
+                    s.wln("inner,");
+                    print_flag_constructor_fields(s, rd);
+                });
+            });
+        }
+
+        let try_function_name = function_name.replacen("new(", "try_new(", 1);
+        s.wln("/// Constructs a flag value only when conditional payloads match raw flag bits.");
+        s.funcn_pub(try_function_name, "Result<Self, std::io::Error>", |s| {
+            s.wln(format!("let flags = {}::new(inner);", rd.original_ty_name()));
+
+            for enumerator in &complex_enumerators {
+                let name = enumerator.name().to_lowercase();
+                s.body(format!("if flags.is_{name}() != {name}.is_some()"), |s| {
+                    s.wln("return Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, \"conditional fields do not match flag condition\"));");
+                });
             }
+
+            s.body_closing_with("Ok(Self", |s| {
+                s.wln("inner,");
+                print_flag_constructor_fields(s, rd);
+            }, ")");
         });
-    });
+    }
 
     s.funcn_pub_const("empty()", "Self", |s| {
         s.body("Self", |s| {
@@ -285,11 +509,20 @@ fn print_constructors_for_new_flag(s: &mut Writer, rd: &RustDefiner) {
             format!("clear_{}(mut self)", enumerator.name().to_lowercase()),
             "Self",
             |s| {
-                s.wln(format!(
-                    "self.inner &= {ty}::{name}.reverse_bits();",
-                    ty = rd.original_ty_name(),
-                    name = enumerator.name()
-                ));
+                let clear_flag = if strict_conditionals {
+                    format!(
+                        "self.inner &= !{ty}::{name};",
+                        ty = rd.original_ty_name(),
+                        name = enumerator.name()
+                    )
+                } else {
+                    format!(
+                        "self.inner &= {ty}::{name}.reverse_bits();",
+                        ty = rd.original_ty_name(),
+                        name = enumerator.name()
+                    )
+                };
+                s.wln(clear_flag);
                 if enumerator.has_members_in_struct() {
                     s.wln(format!("self.{} = None;", enumerator.name().to_lowercase()));
                 }
@@ -337,7 +570,7 @@ fn print_types_for_new_flag(s: &mut Writer, rd: &RustDefiner) {
         }
 
         let new_type_name = get_new_flag_type_name(rd.ty_name(), enumerator.rust_name());
-        print_derives(s, &enumerator.all_members(), false);
+        print_derives(s, &enumerator.all_members(), false, true);
         s.new_struct(&new_type_name, |s| {
             for m in enumerator.members_in_struct() {
                 s.wln(format!(
@@ -366,7 +599,7 @@ pub(crate) fn print_new_enum_declaration(
     ty_name: &str,
     derive_default: bool,
 ) {
-    print_derives(s, &rd.all_members(), true);
+    print_derives(s, &rd.all_members(), true, true);
     if derive_default {
         s.wln("#[derive(Default)]");
     }

@@ -103,24 +103,40 @@ fn print_declaration(s: &mut Writer, e: &Container, o: &Objects) {
     if let Some(rd) = e.single_rust_definer() {
         print_new_enum_declaration(s, &rd, e.name(), false);
     } else {
-        print_derives(s, &e.rust_object().all_members(), false);
+        print_derives(
+            s,
+            &e.rust_object().all_members(),
+            false,
+            !e.tags().rust_strict_conditionals(),
+        );
         print_serde_derive(s, e.tags().is_in_base(), false);
 
         s.new_struct(e.name(), |s| {
             for member in e.rust_object().members_in_struct() {
                 print_member_docc_description_and_comment(s, member.tags(), o, e.tags());
 
-                s.wln(format!(
-                    "pub {name}: {ty},",
-                    name = member.name(),
-                    ty = member.ty(),
-                ));
+                let ty = if member.is_optional() {
+                    format!("Option<{}>", member.ty())
+                } else {
+                    member.ty().to_string()
+                };
+                let visibility = if e.tags().rust_strict_conditionals() {
+                    ""
+                } else {
+                    "pub "
+                };
+                s.wln(format!("{visibility}{name}: {ty},", name = member.name()));
             }
 
             if let Some(optional) = e.rust_object().optional() {
                 print_member_docc_description_and_comment(s, &MemberTags::new(), o, e.tags());
+                let visibility = if e.tags().rust_strict_conditionals() {
+                    ""
+                } else {
+                    "pub "
+                };
                 s.wln(format!(
-                    "pub {name}: Option<{ty}>,",
+                    "{visibility}{name}: Option<{ty}>,",
                     name = optional.name(),
                     ty = optional.ty()
                 ));
@@ -138,7 +154,12 @@ fn print_struct_wowm_definition(s: &mut Writer, e: &Container) {
     );
 }
 
-pub(crate) fn print_derives(s: &mut Writer, members: &[&RustMember], is_enum_type: bool) {
+pub(crate) fn print_derives(
+    s: &mut Writer,
+    members: &[&RustMember],
+    is_enum_type: bool,
+    allow_default: bool,
+) {
     s.w("#[derive(Debug, Clone");
 
     if can_derive_copy(members) {
@@ -155,7 +176,7 @@ pub(crate) fn print_derives(s: &mut Writer, members: &[&RustMember], is_enum_typ
         s.w_no_indent(", Ord");
     }
 
-    if !is_enum_type && can_derive_default(members) {
+    if allow_default && !is_enum_type && can_derive_default(members) {
         s.w_no_indent(", Default");
     }
 
@@ -166,7 +187,10 @@ fn can_derive_ord(members: &[&RustMember]) -> bool {
     members.iter().all(|a| {
         !matches!(
             a.ty(),
-            RustType::Floating | RustType::Population | RustType::MonsterMoveSpline(_)
+            RustType::Floating
+                | RustType::Population
+                | RustType::MonsterMoveSpline(_)
+                | RustType::FullMonsterMoveSpline
         ) && can_derive_ord(&a.all_members_without_self())
     })
 }
@@ -198,6 +222,7 @@ fn can_derive_copy(members: &[&RustMember]) -> bool {
             | RustType::AchievementInProgressArray
             | RustType::AchievementDoneArray
             | RustType::MonsterMoveSpline(_)
+            | RustType::FullMonsterMoveSpline
             | RustType::UpdateMask { .. }
             | RustType::String
             | RustType::CString

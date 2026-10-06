@@ -366,21 +366,70 @@ fn print_value(
     e: &Container,
     version: Version,
 ) {
-    let member = TestCase::try_get_member(t, m.name())
-        .or_else(|| {
-            m.ty()
-                .test_case_alias()
-                .and_then(|name| TestCase::try_get_member(t, name))
-        })
-        .unwrap_or_else(|| TestCase::get_member(t, m.name()));
     let should_print_name = !m.is_single_rust_definer();
+    let member = match TestCase::try_get_member(t, m.name()) {
+        Some(member) => member,
+        None if m.is_optional() => {
+            s.wln(if should_print_name {
+                format!("{}: None,", m.name())
+            } else {
+                "None,".to_string()
+            });
+            return;
+        }
+        None => TestCase::get_member(t, m.name()),
+    };
 
     if should_print_name {
         s.w(format!("{name}: ", name = m.name(),));
     } else {
         s.w("");
     }
+    if m.is_optional() {
+        s.w_no_indent("Some(");
+    }
 
+    print_value_inner(s, m, member, t, e, version, should_print_name);
+
+    if m.is_optional() {
+        s.wln_no_indent("),");
+    }
+}
+
+fn print_value_as_argument(
+    s: &mut Writer,
+    m: &RustMember,
+    t: &[TestCaseMember],
+    e: &Container,
+    version: Version,
+) {
+    let member = match TestCase::try_get_member(t, m.name()) {
+        Some(member) => member,
+        None if m.is_optional() => {
+            s.wln_no_indent("None,");
+            return;
+        }
+        None => TestCase::get_member(t, m.name()),
+    };
+
+    if m.is_optional() {
+        s.w_no_indent("Some(");
+    }
+    print_value_inner(s, m, member, t, e, version, false);
+    if m.is_optional() {
+        s.wln_no_indent("),");
+    }
+}
+
+fn print_value_inner(
+    s: &mut Writer,
+    m: &RustMember,
+    member: &TestCaseMember,
+    t: &[TestCaseMember],
+    e: &Container,
+    version: Version,
+    should_print_name: bool,
+) {
     match member.value() {
         TestValue::Number(i) => {
             let value = match m.ty() {
@@ -573,15 +622,23 @@ fn print_value(
             s.dec_indent();
         }
         TestValue::SubObject { c, members } => {
-            s.wln_no_indent(format!("{} {{", c.name()));
-            s.inc_indent();
-
             let t = members.as_slice();
-            for m in c.rust_object().members_in_struct() {
-                print_value(s, m, t, c, version);
+            if c.tags().rust_strict_conditionals() {
+                s.wln_no_indent(format!("{}::try_new(", c.name()));
+                s.inc_indent();
+                for member in c.rust_object().members_in_struct() {
+                    print_value_as_argument(s, member, t, c, version);
+                }
+                s.dec_indent();
+                s.wln(").expect(\"valid generated conditional payloads\"),");
+            } else {
+                s.wln_no_indent(format!("{} {{", c.name()));
+                s.inc_indent();
+                for m in c.rust_object().members_in_struct() {
+                    print_value(s, m, t, c, version);
+                }
+                s.closing_curly_with(",");
             }
-
-            s.closing_curly_with(",");
         }
         TestValue::Enum(i) => {
             let (subvars, is_single_rust_definer) = match m.ty() {

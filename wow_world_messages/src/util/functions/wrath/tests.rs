@@ -4,7 +4,10 @@ use super::{
     packed_component, read_wrath_monster_move_spline, wrath_monster_move_spline_size,
     write_wrath_monster_move_spline,
 };
-use crate::wrath::Vector3d;
+use crate::wrath::{
+    MonsterMoveData, MonsterMoveData_SplineFlag, MonsterMoveData_SplineFlag_Animation,
+    MonsterMoveData_SplineFlag_Parabolic, SplineFlag, Vector3d,
+};
 
 fn vector(x: f32, y: f32, z: f32) -> Vector3d {
     Vector3d { x, y, z }
@@ -72,11 +75,9 @@ fn empty_path_encodes_only_zero_count() {
     assert_eq!(wrath_monster_move_spline_size(&[], false), 4);
 
     let mut input = bytes.as_slice();
-    assert!(
-        read_wrath_monster_move_spline(&mut input, false)
-            .expect("read empty linear path")
-            .is_empty()
-    );
+    assert!(read_wrath_monster_move_spline(&mut input, false)
+        .expect("read empty linear path")
+        .is_empty());
     assert!(input.is_empty());
 }
 
@@ -153,6 +154,110 @@ fn movement_tail_presence_matches_move_type_in_both_messages() {
         read_body::<crate::wrath::SMSG_MONSTER_MOVE_TRANSPORT>(&monster_move_transport_body(0))
             .is_err()
     );
+}
+
+#[test]
+fn flag_constructor_rejects_animation_and_parabolic_payload_mismatches() {
+    let animation = MonsterMoveData_SplineFlag_Animation {
+        animation_id: 1,
+        animation_start_time: 2,
+    };
+    let parabolic = MonsterMoveData_SplineFlag_Parabolic {
+        effect_start_time: 2,
+        vertical_acceleration: 1.0,
+    };
+    let cases = [
+        (
+            "animation flag without payload",
+            MonsterMoveData_SplineFlag::try_new(SplineFlag::ANIMATION, None, None),
+        ),
+        (
+            "animation payload without flag",
+            MonsterMoveData_SplineFlag::try_new(0, None, Some(animation)),
+        ),
+        (
+            "parabolic flag without payload",
+            MonsterMoveData_SplineFlag::try_new(SplineFlag::PARABOLIC, None, None),
+        ),
+        (
+            "parabolic payload without flag",
+            MonsterMoveData_SplineFlag::try_new(0, Some(parabolic), None),
+        ),
+    ];
+
+    for (label, result) in cases {
+        let error = result.expect_err(label);
+        assert_eq!(error.kind(), ErrorKind::InvalidInput, "{label}");
+    }
+
+    assert!(
+        MonsterMoveData_SplineFlag::try_new(SplineFlag::ANIMATION, None, Some(animation),).is_ok()
+    );
+    assert!(
+        MonsterMoveData_SplineFlag::try_new(SplineFlag::PARABOLIC, Some(parabolic), None,).is_ok()
+    );
+
+    let animation_without_bit = MonsterMoveData_SplineFlag::new(SplineFlag::ANIMATION, None, None);
+    assert!(!SplineFlag::new(animation_without_bit.as_int()).is_animation());
+    let animation_with_bit =
+        MonsterMoveData_SplineFlag::new(SplineFlag::FLYING, None, Some(animation));
+    assert!(SplineFlag::new(animation_with_bit.as_int()).is_animation());
+    let flying_cleared = animation_with_bit.clear_flying();
+    assert!(!SplineFlag::new(flying_cleared.as_int()).is_flying());
+    assert!(SplineFlag::new(flying_cleared.as_int()).is_animation());
+    assert!(flying_cleared.get_animation().is_some());
+    let animation_cleared = animation_with_bit.clear_animation();
+    assert!(!SplineFlag::new(animation_cleared.as_int()).is_animation());
+    assert!(SplineFlag::new(animation_cleared.as_int()).is_flying());
+    assert!(animation_cleared.get_animation().is_none());
+
+    let parabolic_without_bit = MonsterMoveData_SplineFlag::new(SplineFlag::PARABOLIC, None, None);
+    assert!(!SplineFlag::new(parabolic_without_bit.as_int()).is_parabolic());
+    let parabolic_with_bit =
+        MonsterMoveData_SplineFlag::new(SplineFlag::FLYING, Some(parabolic), None);
+    assert!(SplineFlag::new(parabolic_with_bit.as_int()).is_parabolic());
+    let parabolic_cleared = parabolic_with_bit.clear_parabolic();
+    assert!(!SplineFlag::new(parabolic_cleared.as_int()).is_parabolic());
+    assert!(SplineFlag::new(parabolic_cleared.as_int()).is_flying());
+    assert!(parabolic_cleared.get_parabolic().is_none());
+}
+
+#[test]
+fn monster_move_data_constructor_rejects_spline_branch_mismatches() {
+    let default = MonsterMoveData::default();
+    assert!(default.full_splines().is_none());
+    assert!(default.splines().is_some());
+    assert_eq!(default.spline_flags().as_int(), 0);
+
+    let flags = MonsterMoveData_SplineFlag::empty();
+    let flying_flags = flags.set_flying();
+    let cases = [
+        ("missing linear path", flags, None, None),
+        ("unexpected full path", flags, Some(vec![]), None),
+        ("missing full path", flying_flags, None, Some(vec![])),
+        (
+            "both path layouts",
+            flying_flags,
+            Some(vec![]),
+            Some(vec![]),
+        ),
+    ];
+
+    for (label, spline_flags, full_splines, splines) in cases {
+        let error =
+            MonsterMoveData::try_new(spline_flags, 0, full_splines, splines).expect_err(label);
+        assert_eq!(error.kind(), ErrorKind::InvalidInput, "{label}");
+    }
+
+    let linear = MonsterMoveData::try_new(flags, 0, None, Some(vec![vector(1.0, 2.0, 3.0)]))
+        .expect("linear path matches flags");
+    assert_eq!(linear.full_splines(), &None);
+    assert_eq!(linear.splines(), &Some(vec![vector(1.0, 2.0, 3.0)]));
+
+    let full = MonsterMoveData::try_new(flying_flags, 0, Some(vec![]), None)
+        .expect("full path matches flags");
+    assert_eq!(full.full_splines(), &Some(vec![]));
+    assert_eq!(full.splines(), &None);
 }
 
 #[test]

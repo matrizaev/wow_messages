@@ -635,9 +635,7 @@ impl Container {
 
             let (prefix, ty) = match a.ty() {
                 // Wrath spline helpers expose their points as Vec<Vector3d>.
-                Type::FullMonsterMoveSpline => {
-                    (get_import_path(version), "Vector3d".to_string())
-                }
+                Type::FullMonsterMoveSpline => (get_import_path(version), "Vector3d".to_string()),
                 Type::MonsterMoveSplines if self.tags().contains_wrath() => {
                     (get_import_path(version), "Vector3d".to_string())
                 }

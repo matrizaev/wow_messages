@@ -262,7 +262,7 @@ impl crate::Message for SMSG_MONSTER_MOVE {
 impl crate::wrath::ServerMessage for SMSG_MONSTER_MOVE {}
 
 impl SMSG_MONSTER_MOVE {
-    pub(crate) const fn size(&self) -> usize {
+    pub(crate) fn size(&self) -> usize {
         crate::util::packed_guid_size(&self.guid) // guid: PackedGuid
         + 1 // unknown: u8
         + 12 // spline_point: Vector3d
@@ -319,7 +319,7 @@ impl std::fmt::Display for SMSG_MONSTER_MOVE_MonsterMoveType {
 }
 
 impl SMSG_MONSTER_MOVE_MonsterMoveType {
-    pub(crate) const fn size(&self) -> usize {
+    pub(crate) fn size(&self) -> usize {
         match self {
             Self::Normal {
                 movement,
@@ -463,11 +463,12 @@ mod test {
             },
             spline_id: 0x11223344,
             move_type: SMSG_MONSTER_MOVE_MonsterMoveType::Normal {
-                movement: MonsterMoveData {
-                    spline_flags: MonsterMoveData_SplineFlag::empty()
+                movement: MonsterMoveData::try_new(
+MonsterMoveData_SplineFlag::empty()
                         ,
-                    duration: 0x1020304,
-                    splines: vec![
+0x1020304,
+None,
+Some(vec![
                         Vector3d {
                             x: 1.0,
                             y: 2.0,
@@ -479,7 +480,8 @@ mod test {
                             z: -128.0,
                         },
                     ],
-                },
+),
+                ).expect("valid generated conditional payloads"),
             },
         }
 
@@ -562,19 +564,21 @@ mod test {
             },
             spline_id: 0x0,
             move_type: SMSG_MONSTER_MOVE_MonsterMoveType::Normal {
-                movement: MonsterMoveData {
-                    spline_flags: MonsterMoveData_SplineFlag::empty()
+                movement: MonsterMoveData::try_new(
+MonsterMoveData_SplineFlag::empty()
                         .set_enter_cycle()
                         ,
-                    duration: 0x55667788,
-                    splines: vec![
+0x55667788,
+None,
+Some(vec![
                         Vector3d {
                             x: 0.0,
                             y: 0.0,
                             z: 0.0,
                         },
                     ],
-                },
+),
+                ).expect("valid generated conditional payloads"),
             },
         }
 
@@ -657,22 +661,24 @@ mod test {
             },
             spline_id: 0x0,
             move_type: SMSG_MONSTER_MOVE_MonsterMoveType::Normal {
-                movement: MonsterMoveData {
-                    spline_flags: MonsterMoveData_SplineFlag::empty()
+                movement: MonsterMoveData::try_new(
+MonsterMoveData_SplineFlag::empty()
                         .set_animation(MonsterMoveData_SplineFlag_Animation {
                             animation_id: 0x7A,
                             animation_start_time: 0x11223344,
                         })
                         ,
-                    duration: 0x55667788,
-                    splines: vec![
+0x55667788,
+None,
+Some(vec![
                         Vector3d {
                             x: 0.0,
                             y: 0.0,
                             z: 0.0,
                         },
                     ],
-                },
+),
+                ).expect("valid generated conditional payloads"),
             },
         }
 
@@ -755,22 +761,24 @@ mod test {
             },
             spline_id: 0x0,
             move_type: SMSG_MONSTER_MOVE_MonsterMoveType::Normal {
-                movement: MonsterMoveData {
-                    spline_flags: MonsterMoveData_SplineFlag::empty()
+                movement: MonsterMoveData::try_new(
+MonsterMoveData_SplineFlag::empty()
                         .set_parabolic(MonsterMoveData_SplineFlag_Parabolic {
                             effect_start_time: 0x11223344,
                             vertical_acceleration: 1.5_f32,
                         })
                         ,
-                    duration: 0x55667788,
-                    splines: vec![
+0x55667788,
+None,
+Some(vec![
                         Vector3d {
                             x: 1.0,
                             y: 2.0,
                             z: 3.0,
                         },
                     ],
-                },
+),
+                ).expect("valid generated conditional payloads"),
             },
         }
 
@@ -854,12 +862,12 @@ mod test {
             },
             spline_id: 0x0,
             move_type: SMSG_MONSTER_MOVE_MonsterMoveType::Normal {
-                movement: MonsterMoveData {
-                    spline_flags: MonsterMoveData_SplineFlag::empty()
+                movement: MonsterMoveData::try_new(
+MonsterMoveData_SplineFlag::empty()
                         .set_flying()
                         ,
-                    duration: 0x1020304,
-                    splines: vec![
+0x1020304,
+Some(vec![
                         Vector3d {
                             x: 1.0,
                             y: 2.0,
@@ -871,7 +879,9 @@ mod test {
                             z: 6.125,
                         },
                     ],
-                },
+),
+None,
+                ).expect("valid generated conditional payloads"),
             },
         }
 
@@ -955,13 +965,13 @@ mod test {
             },
             spline_id: 0x0,
             move_type: SMSG_MONSTER_MOVE_MonsterMoveType::Normal {
-                movement: MonsterMoveData {
-                    spline_flags: MonsterMoveData_SplineFlag::empty()
+                movement: MonsterMoveData::try_new(
+MonsterMoveData_SplineFlag::empty()
                         .set_flying()
                         .set_catmullrom()
                         ,
-                    duration: 0x1020304,
-                    splines: vec![
+0x1020304,
+Some(vec![
                         Vector3d {
                             x: 1.0,
                             y: 2.0,
@@ -973,7 +983,9 @@ mod test {
                             z: 6.125,
                         },
                     ],
-                },
+),
+None,
+                ).expect("valid generated conditional payloads"),
             },
         }
 
@@ -1057,12 +1069,12 @@ mod test {
             },
             spline_id: 0x0,
             move_type: SMSG_MONSTER_MOVE_MonsterMoveType::Normal {
-                movement: MonsterMoveData {
-                    spline_flags: MonsterMoveData_SplineFlag::empty()
+                movement: MonsterMoveData::try_new(
+MonsterMoveData_SplineFlag::empty()
                         .set_catmullrom()
                         ,
-                    duration: 0x1020304,
-                    splines: vec![
+0x1020304,
+Some(vec![
                         Vector3d {
                             x: 1.0,
                             y: 2.0,
@@ -1074,7 +1086,9 @@ mod test {
                             z: 6.125,
                         },
                     ],
-                },
+),
+None,
+                ).expect("valid generated conditional payloads"),
             },
         }
 
